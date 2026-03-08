@@ -1,0 +1,11 @@
+# Crysis 3 Remastered Steam build lock
+# Fill all REPLACE_* values after validating your table against a known-good build.
+
+APP_ID=1715150
+DEPOT_ID=1715151
+EXPECTED_BUILD_ID=REPLACE_BUILD_ID
+EXPECTED_MANIFEST_ID=REPLACE_MANIFEST_ID
+
+# Optional override. Leave empty to auto-detect common Steam paths.
+APPMANIFEST_PATH=
+
