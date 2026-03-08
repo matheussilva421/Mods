@@ -7,25 +7,25 @@ CE_BIN="${CE_BIN:-cheatengine-x86_64}"
 LOG_FILE="${LOG_FILE:-/tmp/crysis2_remastered_ce.log}"
 
 if [[ $# -eq 0 ]]; then
-  echo "[trainer] no game command provided."
-  echo "[trainer] expected usage: stl_launch.sh %command%"
+  echo "[trainer] Nenhum comando de jogo fornecido."
+  echo "[trainer] Uso esperado: stl_launch.sh %command%"
   exit 1
 fi
 
 if [[ ! -f "$TABLE_PATH" ]]; then
-  echo "[trainer] table not found: $TABLE_PATH"
+  echo "[trainer] Tabela nao encontrada: $TABLE_PATH"
   exit 1
 fi
 
 if ! command -v "$CE_BIN" >/dev/null 2>&1; then
-  echo "[trainer] cheat engine binary not found: $CE_BIN"
-  echo "[trainer] set CE_BIN to the full binary path if needed."
+  echo "[trainer] Cheat Engine nao encontrado: $CE_BIN"
+  echo "[trainer] Defina CE_BIN com o caminho completo do binario."
   exit 1
 fi
 
-echo "[trainer] launching CE table: $TABLE_PATH"
+echo "[trainer] Iniciando CE com tabela: $TABLE_PATH"
 "$CE_BIN" "$TABLE_PATH" >"$LOG_FILE" 2>&1 &
 CE_PID=$!
-echo "[trainer] CE started (pid $CE_PID). log: $LOG_FILE"
+echo "[trainer] CE iniciado (pid $CE_PID). Log: $LOG_FILE"
 
 exec "$@"
