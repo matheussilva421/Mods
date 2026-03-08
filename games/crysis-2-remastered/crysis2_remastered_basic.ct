@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>1</ID>
+      <Description>"[F1] Infinite Health (template)"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript><![CDATA[
+[ENABLE]
+aobscanmodule(C2R_HEALTH_WRITE,Crysis2Remastered.exe,00 11 22 33 44 55 66 77)
+assert(C2R_HEALTH_WRITE,00 11 22 33 44 55 66 77)
+alloc(newmem_health,$1000,C2R_HEALTH_WRITE)
+label(code_health)
+label(return_health)
+
+newmem_health:
+  // Template hook: skip the original health write.
+  jmp return_health
+
+code_health:
+  mov [rbx+000001C0],eax
+  jmp return_health
+
+C2R_HEALTH_WRITE:
+  jmp newmem_health
+  nop
+  nop
+  nop
+return_health:
+
+[DISABLE]
+C2R_HEALTH_WRITE:
+  db 00 11 22 33 44 55 66 77
+
+dealloc(newmem_health)
+      ]]></AssemblerScript>
+      <Hotkeys>
+        <Hotkey>
+          <Action>Toggle Activation</Action>
+          <Keys>
+            <Key>112</Key>
+          </Keys>
+          <ID>0</ID>
+        </Hotkey>
+      </Hotkeys>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2</ID>
+      <Description>"[F2] Infinite Nanosuit Energy (template)"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript><![CDATA[
+[ENABLE]
+aobscanmodule(C2R_ENERGY_WRITE,Crysis2Remastered.exe,AA BB CC DD EE FF 00 11)
+assert(C2R_ENERGY_WRITE,AA BB CC DD EE FF 00 11)
+alloc(newmem_energy,$1000,C2R_ENERGY_WRITE)
+label(code_energy)
+label(return_energy)
+
+newmem_energy:
+  // Template hook: block nanosuit energy drain.
+  jmp return_energy
+
+code_energy:
+  movss [rcx+000002A0],xmm1
+  jmp return_energy
+
+C2R_ENERGY_WRITE:
+  jmp newmem_energy
+  nop
+  nop
+  nop
+return_energy:
+
+[DISABLE]
+C2R_ENERGY_WRITE:
+  db AA BB CC DD EE FF 00 11
+
+dealloc(newmem_energy)
+      ]]></AssemblerScript>
+      <Hotkeys>
+        <Hotkey>
+          <Action>Toggle Activation</Action>
+          <Keys>
+            <Key>113</Key>
+          </Keys>
+          <ID>1</ID>
+        </Hotkey>
+      </Hotkeys>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>3</ID>
+      <Description>"[F3] Infinite Ammo (template)"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript><![CDATA[
+[ENABLE]
+aobscanmodule(C2R_AMMO_SUB,Crysis2Remastered.exe,88 99 AA BB CC DD)
+assert(C2R_AMMO_SUB,88 99 AA BB CC DD)
+alloc(newmem_ammo,$1000,C2R_AMMO_SUB)
+label(code_ammo)
+label(return_ammo)
+
+newmem_ammo:
+  // Template hook: block ammo decrement.
+  jmp return_ammo
+
+code_ammo:
+  sub [rbx+00000198],eax
+  jmp return_ammo
+
+C2R_AMMO_SUB:
+  jmp newmem_ammo
+  nop
+return_ammo:
+
+[DISABLE]
+C2R_AMMO_SUB:
+  db 88 99 AA BB CC DD
+
+dealloc(newmem_ammo)
+      ]]></AssemblerScript>
+      <Hotkeys>
+        <Hotkey>
+          <Action>Toggle Activation</Action>
+          <Keys>
+            <Key>114</Key>
+          </Keys>
+          <ID>2</ID>
+        </Hotkey>
+      </Hotkeys>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>4</ID>
+      <Description>"[F4] No Recoil (template)"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript><![CDATA[
+[ENABLE]
+aobscanmodule(C2R_RECOIL_WRITE,Crysis2Remastered.exe,10 20 30 40 50 60 70 80)
+assert(C2R_RECOIL_WRITE,10 20 30 40 50 60 70 80)
+alloc(newmem_recoil,$1000,C2R_RECOIL_WRITE)
+label(code_recoil)
+label(return_recoil)
+
+newmem_recoil:
+  // Template hook: zero recoil value before write.
+  xorps xmm0,xmm0
+  movss [rdi+000000D0],xmm0
+  jmp return_recoil
+
+code_recoil:
+  movss [rdi+000000D0],xmm0
+  jmp return_recoil
+
+C2R_RECOIL_WRITE:
+  jmp newmem_recoil
+  nop
+  nop
+  nop
+return_recoil:
+
+[DISABLE]
+C2R_RECOIL_WRITE:
+  db 10 20 30 40 50 60 70 80
+
+dealloc(newmem_recoil)
+      ]]></AssemblerScript>
+      <Hotkeys>
+        <Hotkey>
+          <Action>Toggle Activation</Action>
+          <Keys>
+            <Key>115</Key>
+          </Keys>
+          <ID>3</ID>
+        </Hotkey>
+      </Hotkeys>
+    </CheatEntry>
+  </CheatEntries>
+  <UserdefinedSymbols/>
+  <LuaScript><![CDATA[
+if syntaxcheck then return end
+
+local processName = 'Crysis2Remastered.exe'
+local attached = false
+
+if getOpenedProcessID() ~= 0 then
+  attached = true
+else
+  local ok = pcall(openProcess, processName)
+  if ok and getOpenedProcessID() ~= 0 then
+    attached = true
+  end
+end
+
+getAutoAttachList().add(processName)
+
+if not attached then
+  print('[crysis2 trainer] waiting for process: ' .. processName)
+end
+
+if _G.CRYSIS2_PANIC_HK ~= nil then
+  CRYSIS2_PANIC_HK.destroy()
+  CRYSIS2_PANIC_HK = nil
+end
+
+CRYSIS2_PANIC_HK = createHotkey(function()
+  local al = getAddressList()
+  for i = 0, al.Count - 1 do
+    local rec = al[i]
+    if rec ~= nil and rec.Active then
+      rec.Active = false
+    end
+  end
+  showMessage('Trainer entries disabled.')
+end, VK_F12)
+  ]]></LuaScript>
+</CheatTable>
