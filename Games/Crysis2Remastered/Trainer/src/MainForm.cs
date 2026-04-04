@@ -26,7 +26,6 @@ namespace Crysis2RemasteredTrainer
         private string _profilePath;
         private string _logFilePath;
         private int _attachedProcessId;
-        private bool _suppressToggleEvents;
         private HookState _healthCollectorHook;
 
         internal MainForm()
@@ -224,10 +223,7 @@ namespace Crysis2RemasteredTrainer
                 runtime.OriginalBytes = null;
                 runtime.PatchedAddress = IntPtr.Zero;
                 runtime.Hook = null;
-                if (runtime.Toggle != null && runtime.Toggle.Checked)
-                {
-                    SetToggleChecked(runtime.Toggle, false);
-                }
+                UpdateRuntimeUi(runtime);
             }
         }
 
@@ -238,12 +234,12 @@ namespace Crysis2RemasteredTrainer
                 try
                 {
                     EnableCheat(runtime);
-                    SetToggleChecked(runtime.Toggle, runtime.IsEnabled);
+                    UpdateRuntimeUi(runtime);
                 }
                 catch (Exception ex)
                 {
                     runtime.IsEnabled = false;
-                    SetToggleChecked(runtime.Toggle, false);
+                    UpdateRuntimeUi(runtime);
                     LogError(runtime.Definition.Name + " failed", ex);
                 }
             }
@@ -252,7 +248,7 @@ namespace Crysis2RemasteredTrainer
                 try
                 {
                     DisableCheat(runtime);
-                    SetToggleChecked(runtime.Toggle, false);
+                    UpdateRuntimeUi(runtime);
                 }
                 catch (Exception ex)
                 {
@@ -659,10 +655,7 @@ namespace Crysis2RemasteredTrainer
                     LogError(runtime.Definition.Name + " disable-all error", ex);
                 }
 
-                if (runtime.Toggle != null && runtime.Toggle.Checked)
-                {
-                    SetToggleChecked(runtime.Toggle, false);
-                }
+                UpdateRuntimeUi(runtime);
             }
         }
 
@@ -738,7 +731,7 @@ namespace Crysis2RemasteredTrainer
                         Log("Hotkey pressed: " + cheat.Hotkey + " -> " + cheat.Name + ".");
                         bool nextState = !runtime.IsEnabled;
                         ToggleCheat(runtime, nextState);
-                        SetToggleChecked(runtime.Toggle, runtime.IsEnabled);
+                        UpdateRuntimeUi(runtime);
                     }
                 }
             }
@@ -750,6 +743,9 @@ namespace Crysis2RemasteredTrainer
         {
             string line = DateTime.Now.ToString("HH:mm:ss") + "  " + message;
             _logBox.AppendText(line + Environment.NewLine);
+            _logBox.SelectionStart = _logBox.TextLength;
+            _logBox.ScrollToCaret();
+            _logBox.Refresh();
             AppendLineToFileLog(line);
         }
 
@@ -811,42 +807,93 @@ namespace Crysis2RemasteredTrainer
             description.Font = new Font(Font.FontFamily, 8, FontStyle.Regular);
             description.AutoEllipsis = true;
 
-            CheckBox toggle = new CheckBox();
-            toggle.Dock = DockStyle.Top;
-            toggle.Height = 24;
-            toggle.Text = runtime.Definition.Name + " (" + runtime.Definition.Hotkey + ")";
-            toggle.Font = new Font(Font.FontFamily, 8.5f, FontStyle.Bold);
-            toggle.CheckedChanged += delegate
-            {
-                if (_suppressToggleEvents)
-                {
-                    return;
-                }
+            FlowLayoutPanel actions = new FlowLayoutPanel();
+            actions.Dock = DockStyle.Top;
+            actions.Height = 28;
+            actions.WrapContents = false;
+            actions.FlowDirection = FlowDirection.LeftToRight;
+            actions.Margin = new Padding(0);
 
-                ToggleCheat(runtime, toggle.Checked);
+            Label title = new Label();
+            title.AutoSize = false;
+            title.Width = 185;
+            title.Height = 24;
+            title.TextAlign = ContentAlignment.MiddleLeft;
+            title.Text = runtime.Definition.Name + " (" + runtime.Definition.Hotkey + ")";
+            title.Font = new Font(Font.FontFamily, 8.5f, FontStyle.Bold);
+
+            Button enableButton = new Button();
+            enableButton.Width = 62;
+            enableButton.Height = 24;
+            enableButton.Text = "Enable";
+            enableButton.Click += delegate
+            {
+                RequestCheatState(runtime, true, "button");
             };
 
-            runtime.Toggle = toggle;
+            Button disableButton = new Button();
+            disableButton.Width = 62;
+            disableButton.Height = 24;
+            disableButton.Text = "Disable";
+            disableButton.Click += delegate
+            {
+                RequestCheatState(runtime, false, "button");
+            };
+
+            Label stateLabel = new Label();
+            stateLabel.AutoSize = false;
+            stateLabel.Width = 70;
+            stateLabel.Height = 24;
+            stateLabel.TextAlign = ContentAlignment.MiddleCenter;
+            stateLabel.Font = new Font(Font.FontFamily, 8, FontStyle.Bold);
+
+            runtime.EnableButton = enableButton;
+            runtime.DisableButton = disableButton;
+            runtime.StateLabel = stateLabel;
+
+            actions.Controls.Add(title);
+            actions.Controls.Add(enableButton);
+            actions.Controls.Add(disableButton);
+            actions.Controls.Add(stateLabel);
             card.Controls.Add(description);
-            card.Controls.Add(toggle);
+            card.Controls.Add(actions);
+            UpdateRuntimeUi(runtime);
             return card;
         }
 
-        private void SetToggleChecked(CheckBox toggle, bool isChecked)
+        private void RequestCheatState(CheatRuntime runtime, bool enable, string source)
         {
-            if (toggle == null)
+            if (runtime == null)
             {
                 return;
             }
 
-            _suppressToggleEvents = true;
-            try
+            Log("Requested: " + runtime.Definition.Name + " -> " + (enable ? "enable" : "disable") + " via " + source + ".");
+            ToggleCheat(runtime, enable);
+            Log("Current state: " + runtime.Definition.Name + " -> " + (runtime.IsEnabled ? "enabled" : "disabled") + ".");
+        }
+
+        private void UpdateRuntimeUi(CheatRuntime runtime)
+        {
+            if (runtime == null)
             {
-                toggle.Checked = isChecked;
+                return;
             }
-            finally
+
+            if (runtime.EnableButton != null)
             {
-                _suppressToggleEvents = false;
+                runtime.EnableButton.Enabled = !runtime.IsEnabled;
+            }
+
+            if (runtime.DisableButton != null)
+            {
+                runtime.DisableButton.Enabled = runtime.IsEnabled;
+            }
+
+            if (runtime.StateLabel != null)
+            {
+                runtime.StateLabel.Text = runtime.IsEnabled ? "Enabled" : "Disabled";
+                runtime.StateLabel.ForeColor = runtime.IsEnabled ? Color.DarkGreen : Color.DarkRed;
             }
         }
 
@@ -903,11 +950,13 @@ namespace Crysis2RemasteredTrainer
             }
 
             internal CheatDefinition Definition;
-            internal CheckBox Toggle;
             internal bool IsEnabled;
             internal byte[] OriginalBytes;
             internal IntPtr PatchedAddress;
             internal HookState Hook;
+            internal Button EnableButton;
+            internal Button DisableButton;
+            internal Label StateLabel;
         }
 
         private sealed class HookState
