@@ -4,7 +4,13 @@ Esta pasta agrupa os projetos por jogo.
 
 ## Jogos disponiveis
 
+- `CrysisRemastered/`
 - `Crysis2Remastered/`
+
+## Estado atual de cada jogo
+
+- `CrysisRemastered/` trainer legado baseado em Cheat Engine + scripts Steam Deck
+- `Crysis2Remastered/` trainer em `.exe` com release para Cheat Deck
 
 ## Padrao esperado para novos jogos
 
@@ -16,7 +22,3 @@ Games/
     Patches/
     Research/
 ```
-
-## Download atual mais importante
-
-- `Crysis2Remastered/Trainer/release/cheat-deck/Crysis2Remastered-CheatDeck.exe`

@@ -4,4 +4,5 @@ A documentacao tecnica esta agrupada por jogo.
 
 ## Jogos documentados
 
+- `CrysisRemastered/`
 - `Crysis2Remastered/`
