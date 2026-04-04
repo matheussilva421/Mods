@@ -1,6 +1,6 @@
-﻿# Games Index
+﻿# Indice de Jogos
 
-Projetos agrupados por jogo.
+Esta pasta agrupa os projetos por jogo.
 
 ## Jogos disponiveis
 

@@ -1,20 +1,20 @@
-﻿# Crysis 2 Remastered Trainer
+﻿# Trainer do Crysis 2 Remastered
 
-This project is organized into clear working areas:
+Este projeto esta separado em areas claras de trabalho:
 
-- `src/` source code
-- `profiles/` editable trainer profiles
-- `release/cheat-deck/` simplest final package for Steam Deck
-- `release/portable/` editable release package
-- `dist/` local build output only
+- `src/` codigo-fonte
+- `profiles/` perfis editaveis do trainer
+- `release/cheat-deck/` pacote final mais simples para Steam Deck
+- `release/portable/` pacote editavel
+- `dist/` saida local de build
 
-## Fastest path
+## Caminho mais rapido
 
-If you just want the final package for Cheat Deck, use:
+Se voce quer apenas o pacote final para Cheat Deck, use:
 
 - `release/cheat-deck/Crysis2Remastered-CheatDeck.exe`
 
-## Implemented cheats
+## Cheats implementados
 
 - `F1` Lock Energy
 - `F2` Lock Holster
@@ -26,13 +26,13 @@ If you just want the final package for Cheat Deck, use:
 
 ## Build
 
-Run:
+Execute:
 
 ```powershell
 .\build-trainer.ps1
 ```
 
-The build generates:
+O build gera:
 
 - `dist/Crysis2RemasteredTrainer.exe`
 - `release/cheat-deck/Crysis2Remastered-CheatDeck.exe`
@@ -40,6 +40,6 @@ The build generates:
 - `release/portable/Crysis2RemasteredTrainer.exe`
 - `release/portable/profiles/crysis2-remastered.fr-v1.4.json`
 
-## Important limitation
+## Limitacao importante
 
-This trainer is based on the Fearless Revolution `Crysis2 REM_v1.4_Released.CT` table. The executable and package startup were validated here, but the in-game cheat behavior still needs validation against the target game build.
+Este trainer foi baseado na tabela Fearless Revolution `Crysis2 REM_v1.4_Released.CT`. A geracao do executavel e a abertura do pacote final foram validadas aqui, mas o comportamento in-game ainda depende da build alvo do jogo.

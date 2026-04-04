@@ -1,6 +1,6 @@
-﻿# Repository Docs Index
+﻿# Indice de Documentacao do Repositorio
 
-Documentacao de organizacao, README, estrutura e manutencao do repositorio.
+Esta pasta agrupa a documentacao de manutencao geral do repositorio.
 
 ## Documentos
 

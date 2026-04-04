@@ -1,8 +1,8 @@
 ﻿# Crysis 2 Remastered
 
-Esta pasta agrupa tudo que pertence a este jogo.
+Esta pasta concentra tudo que pertence a este jogo.
 
-## Projeto disponivel
+## Projeto disponivel hoje
 
 - `Trainer/`
 

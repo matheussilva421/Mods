@@ -1,11 +1,11 @@
 ﻿# Mods / Trainers
 
-Repositorio para organizar projetos por jogo, com estrutura pronta para crescer sem baguncar a raiz.
+Repositorio para organizar trainers, mods e projetos tecnicos por jogo, com uma estrutura que pode crescer sem poluir a raiz.
 
-## Estrutura do repositorio
+## Estrutura principal
 
 - `Games/` projetos agrupados por jogo
-- `Docs/` documentacao agrupada por jogo e por repositorio
+- `Docs/` documentacao agrupada por jogo e por manutencao do repositorio
 
 ## Jogo ativo hoje
 
@@ -17,16 +17,16 @@ Para usar o pacote atual no Steam Deck com Cheat Deck:
 
 - `Games/Crysis2Remastered/Trainer/release/cheat-deck/Crysis2Remastered-CheatDeck.exe`
 
-## Como esta organizado
+## Como o repositorio esta organizado
 
-Cada jogo pode ter mais de um tipo de projeto no futuro, por exemplo:
+Cada jogo pode ter mais de um tipo de projeto no futuro. Exemplos:
 
 - `Trainer/`
 - `Mods/`
 - `Patches/`
 - `Research/`
 
-Exemplo de padrao:
+Padrao atual:
 
 ```text
 Games/
@@ -34,6 +34,7 @@ Games/
     Trainer/
     Mods/
     Patches/
+    Research/
 Docs/
   Games/
     NomeDoJogo/

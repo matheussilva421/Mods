@@ -1,8 +1,8 @@
-﻿# Crysis 2 Remastered Docs
+﻿# Documentacao do Crysis 2 Remastered
 
-Documentation for this game is grouped here in reading order.
+Esta pasta agrupa a documentacao do projeto deste jogo em ordem de leitura.
 
-## Index
+## Indice
 
 1. `01-limpeza-e-expansao-2026-04-04.md`
 2. `02-pacote-single-exe-steam-deck-2026-04-04.md`
@@ -12,12 +12,12 @@ Documentation for this game is grouped here in reading order.
 6. `06-reorganizacao-por-jogos-2026-04-04.md`
 7. `07-como-o-exe-foi-criado-2026-04-04.md`
 
-## What each document covers
+## O que cada documento cobre
 
-- `01` repository cleanup and trainer expansion
-- `02` single-exe package strategy for Steam Deck
-- `03` executable startup validation
-- `04` final PT-BR release packaging decisions
-- `05` repository organization and final layout
-- `06` repository layout grouped by games for future expansion
-- `07` technical explanation of how the executable is built and packaged
+- `01` limpeza do repositorio e expansao do trainer
+- `02` estrategia do pacote single-exe para Steam Deck
+- `03` validacao de abertura do executavel
+- `04` decisoes da release final em PT-BR
+- `05` reorganizacao estrutural do repositorio
+- `06` organizacao do GitHub por jogos
+- `07` explicacao tecnica de como o executavel e gerado
