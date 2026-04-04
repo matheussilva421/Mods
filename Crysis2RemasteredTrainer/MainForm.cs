@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -98,14 +98,16 @@ namespace Crysis2RemasteredTrainer
         private void OnLoad(object sender, EventArgs e)
         {
             _profilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "profiles", "crysis2-remastered.fr-v1.4.json");
-            if (!File.Exists(_profilePath))
+            if (File.Exists(_profilePath))
             {
-                Log("Profile file not found: " + _profilePath);
-                _statusLabel.Text = "Status: profile file missing";
-                return;
+                _profile = TrainerProfile.Load(_profilePath);
+                Log("Loaded external profile: " + _profilePath);
             }
-
-            _profile = TrainerProfile.Load(_profilePath);
+            else
+            {
+                _profile = TrainerProfile.LoadFromJson(EmbeddedProfile.GetDefaultProfileJson());
+                Log("External profile file not found. Loaded embedded FR v1.4 profile.");
+            }
             _attachTimer.Interval = _profile.PollIntervalMs;
             _attachTimer.Tick += OnAttachTimerTick;
             BuildCheatList();
@@ -748,3 +750,4 @@ namespace Crysis2RemasteredTrainer
         }
     }
 }
+

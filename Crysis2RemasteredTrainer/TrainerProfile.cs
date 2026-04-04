@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Web.Script.Serialization;
@@ -15,8 +15,12 @@ namespace Crysis2RemasteredTrainer
 
         internal static TrainerProfile Load(string path)
         {
+            return LoadFromJson(File.ReadAllText(path));
+        }
+
+        internal static TrainerProfile LoadFromJson(string json)
+        {
             JavaScriptSerializer serializer = new JavaScriptSerializer();
-            string json = File.ReadAllText(path);
             TrainerProfile profile = serializer.Deserialize<TrainerProfile>(json);
             if (profile == null)
             {

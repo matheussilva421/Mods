@@ -1,6 +1,19 @@
-# Crysis 2 Remastered Trainer
+﻿# Crysis 2 Remastered Trainer
 
 This folder contains a standalone Windows trainer executable intended to be launched alongside the game by Cheat Deck on Steam Deck.
+
+## Simplest use
+
+If you want the lowest-friction setup, use:
+
+- `release/single-exe/Crysis2RemasteredTrainer.exe`
+
+This build contains the FR v1.4 profile embedded inside the executable, so the basic flow does not depend on a separate `profiles` folder.
+
+If you want an editable package, use:
+
+- `release/portable/Crysis2RemasteredTrainer.exe`
+- `release/portable/profiles/crysis2-remastered.fr-v1.4.json`
 
 ## What is implemented
 
@@ -11,7 +24,8 @@ This folder contains a standalone Windows trainer executable intended to be laun
 - direct patch support with original-byte restore
 - relative-address write support for byte flags
 - code-cave hook support for cheats that need runtime logic
-- FR v1.4 based profile in `profiles/crysis2-remastered.fr-v1.4.json`
+- embedded FR v1.4 fallback profile
+- external FR v1.4 profile in `profiles/crysis2-remastered.fr-v1.4.json`
 
 ## Implemented cheats
 
@@ -25,7 +39,7 @@ This folder contains a standalone Windows trainer executable intended to be laun
 
 ## Important limitation
 
-This executable is now based on real patterns and logic extracted from the Fearless Revolution `Crysis2 REM_v1.4_Released.CT` table. I still have not runtime-validated it against a live game process in this environment, so final validation still needs to happen on the target game build.
+This executable is based on patterns and logic extracted from the Fearless Revolution `Crysis2 REM_v1.4_Released.CT` table. I still have not runtime-validated it against a live game process in this environment, so final validation still needs to happen on the target game build.
 
 ## Build
 
@@ -39,11 +53,16 @@ Output:
 
 - `dist/Crysis2RemasteredTrainer.exe`
 - `dist/profiles/crysis2-remastered.fr-v1.4.json`
+- `release/single-exe/Crysis2RemasteredTrainer.exe`
+- `release/portable/Crysis2RemasteredTrainer.exe`
+- `release/portable/profiles/crysis2-remastered.fr-v1.4.json`
 
 ## Cheat Deck usage
 
-Point Cheat Deck to launch:
+For the simplest path in Cheat Deck, point it to:
 
 - `Crysis2RemasteredTrainer.exe`
 
-Keep the `profiles` folder beside the executable.
+Recommended source:
+
+- `release/single-exe/Crysis2RemasteredTrainer.exe`
