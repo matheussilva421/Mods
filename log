@@ -1,0 +1,52 @@
+============================================================
+Session started at 2026-04-04 20:30:10
+Log file: Z:\home\deck\Games\Trainers\Crysis2RemasteredTrainer.log
+============================================================
+20:30:10  Session started.
+20:30:10  File log: Z:\home\deck\Games\Trainers\Crysis2RemasteredTrainer.log
+20:30:10  External profile file not found. Loaded embedded FR v1.4 profile.
+20:30:10  Loaded profile: Crysis 2 Remastered FR v1.4 direct trainer
+20:30:10  Attached to Crysis2Remastered (PID 332) at Z:\home\deck\Games\Crysis 2 Remastered\Bin64\Crysis2Remastered.exe
+20:31:54  Disabled: God Mode
+20:31:54  Disabled: 1-Hit Kill
+20:31:56  Disabled: God Mode
+20:31:56  Disabled: 1-Hit Kill
+20:32:33  Disabled: God Mode
+20:32:33  Disabled: 1-Hit Kill
+============================================================
+Session started at 2026-04-04 20:33:13
+Log file: Z:\home\deck\Games\Trainers\Crysis2RemasteredTrainer.log
+============================================================
+20:33:13  Session started.
+20:33:13  File log: Z:\home\deck\Games\Trainers\Crysis2RemasteredTrainer.log
+20:33:13  External profile file not found. Loaded embedded FR v1.4 profile.
+20:33:13  Loaded profile: Crysis 2 Remastered FR v1.4 direct trainer
+20:33:14  Attached to Crysis2Remastered (PID 328) at Z:\home\deck\Games\Crysis 2 Remastered\Bin64\Crysis2Remastered.exe
+20:34:27  Detached from PID 328.
+20:34:30  Lock Energy failed: Game process is not attached.
+[2026-04-04 20:34:30] ERROR Lock Energy failed
+Type: System.InvalidOperationException
+Message: Game process is not attached.
+Stack:
+  at Crysis2RemasteredTrainer.MainForm.EnsureAttached () [0x00026] in <7dd49bc7dafa4558bf8e3fa84c22b50e>:0 
+  at Crysis2RemasteredTrainer.MainForm.EnableCheat (Crysis2RemasteredTrainer.MainForm+CheatRuntime runtime) [0x00000] in <7dd49bc7dafa4558bf8e3fa84c22b50e>:0 
+  at Crysis2RemasteredTrainer.MainForm.ToggleCheat (Crysis2RemasteredTrainer.MainForm+CheatRuntime runtime, System.Boolean enable) [0x00006] in <7dd49bc7dafa4558bf8e3fa84c22b50e>:0 
+
+20:34:30  Lock Energy failed: Game process is not attached.
+[2026-04-04 20:34:30] ERROR Lock Energy failed
+Type: System.InvalidOperationException
+Message: Game process is not attached.
+Stack:
+  at Crysis2RemasteredTrainer.MainForm.EnsureAttached () [0x00026] in <7dd49bc7dafa4558bf8e3fa84c22b50e>:0 
+  at Crysis2RemasteredTrainer.MainForm.EnableCheat (Crysis2RemasteredTrainer.MainForm+CheatRuntime runtime) [0x00000] in <7dd49bc7dafa4558bf8e3fa84c22b50e>:0 
+  at Crysis2RemasteredTrainer.MainForm.ToggleCheat (Crysis2RemasteredTrainer.MainForm+CheatRuntime runtime, System.Boolean enable) [0x00006] in <7dd49bc7dafa4558bf8e3fa84c22b50e>:0 
+
+20:34:31  Lock Energy failed: Game process is not attached.
+[2026-04-04 20:34:31] ERROR Lock Energy failed
+Type: System.InvalidOperationException
+Message: Game process is not attached.
+Stack:
+  at Crysis2RemasteredTrainer.MainForm.EnsureAttached () [0x00026] in <7dd49bc7dafa4558bf8e3fa84c22b50e>:0 
+  at Crysis2RemasteredTrainer.MainForm.EnableCheat (Crysis2RemasteredTrainer.MainForm+CheatRuntime runtime) [0x00000] in <7dd49bc7dafa4558bf8e3fa84c22b50e>:0 
+  at Crysis2RemasteredTrainer.MainForm.ToggleCheat (Crysis2RemasteredTrainer.MainForm+CheatRuntime runtime, System.Boolean enable) [0x00006] in <7dd49bc7dafa4558bf8e3fa84c22b50e>:0 
+
