@@ -14,17 +14,19 @@ namespace Crysis2RemasteredTrainer
         private readonly ProcessMemory _memory = new ProcessMemory();
         private readonly Dictionary<string, CheatRuntime> _runtimes = new Dictionary<string, CheatRuntime>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<int, CheatDefinition> _hotkeyMap = new Dictionary<int, CheatDefinition>();
-        private readonly FlowLayoutPanel _cheatPanel = new FlowLayoutPanel();
+        private readonly TableLayoutPanel _cheatPanel = new TableLayoutPanel();
         private readonly TextBox _logBox = new TextBox();
         private readonly Label _statusLabel = new Label();
         private readonly Button _refreshButton = new Button();
         private readonly Button _disableAllButton = new Button();
         private readonly Timer _attachTimer = new Timer();
         private readonly object _fileLogLock = new object();
+        private TableLayoutPanel _rootLayout;
         private TrainerProfile _profile;
         private string _profilePath;
         private string _logFilePath;
         private int _attachedProcessId;
+        private bool _suppressToggleEvents;
         private HookState _healthCollectorHook;
 
         internal MainForm()
@@ -37,66 +39,75 @@ namespace Crysis2RemasteredTrainer
         private void InitializeUi()
         {
             Text = "Crysis 2 Remastered Trainer";
-            Width = 760;
-            Height = 580;
-            MinimumSize = new Size(680, 500);
+            Font = new Font("Segoe UI", 8.5f, FontStyle.Regular, GraphicsUnit.Point);
+            Width = 860;
+            Height = 640;
+            MinimumSize = new Size(760, 560);
             StartPosition = FormStartPosition.CenterScreen;
+            AutoScaleMode = AutoScaleMode.Dpi;
 
-            TableLayoutPanel root = new TableLayoutPanel();
-            root.Dock = DockStyle.Fill;
-            root.ColumnCount = 1;
-            root.RowCount = 4;
-            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 44));
-            root.RowStyles.Add(new RowStyle(SizeType.Absolute, 48));
-            root.RowStyles.Add(new RowStyle(SizeType.Percent, 55));
-            root.RowStyles.Add(new RowStyle(SizeType.Percent, 45));
-            Controls.Add(root);
+            _rootLayout = new TableLayoutPanel();
+            _rootLayout.Dock = DockStyle.Fill;
+            _rootLayout.ColumnCount = 1;
+            _rootLayout.RowCount = 4;
+            _rootLayout.Padding = new Padding(8);
+            _rootLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
+            _rootLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
+            _rootLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            _rootLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 118));
+            Controls.Add(_rootLayout);
 
             Label title = new Label();
             title.Text = "Cheat Deck companion trainer";
             title.Dock = DockStyle.Fill;
-            title.Font = new Font(Font.FontFamily, 12, FontStyle.Bold);
+            title.Font = new Font(Font.FontFamily, 10, FontStyle.Bold);
             title.TextAlign = ContentAlignment.MiddleLeft;
-            title.Padding = new Padding(12, 0, 0, 0);
-            root.Controls.Add(title, 0, 0);
+            title.Padding = new Padding(6, 0, 0, 0);
+            _rootLayout.Controls.Add(title, 0, 0);
 
             Panel topBar = new Panel();
             topBar.Dock = DockStyle.Fill;
-            topBar.Padding = new Padding(12, 8, 12, 8);
-            root.Controls.Add(topBar, 0, 1);
+            topBar.Padding = new Padding(6, 4, 6, 4);
+            _rootLayout.Controls.Add(topBar, 0, 1);
 
             _statusLabel.AutoSize = false;
             _statusLabel.Text = "Status: loading profile";
-            _statusLabel.Width = 420;
+            _statusLabel.Width = 520;
             _statusLabel.TextAlign = ContentAlignment.MiddleLeft;
             _statusLabel.Dock = DockStyle.Left;
             topBar.Controls.Add(_statusLabel);
 
             _disableAllButton.Text = "Disable All";
-            _disableAllButton.Width = 110;
+            _disableAllButton.Width = 96;
             _disableAllButton.Dock = DockStyle.Right;
             _disableAllButton.Click += delegate { DisableAllCheats(); };
             topBar.Controls.Add(_disableAllButton);
 
             _refreshButton.Text = "Refresh Attach";
-            _refreshButton.Width = 110;
+            _refreshButton.Width = 96;
             _refreshButton.Dock = DockStyle.Right;
             _refreshButton.Click += delegate { RefreshAttachment(); };
             topBar.Controls.Add(_refreshButton);
 
             _cheatPanel.Dock = DockStyle.Fill;
-            _cheatPanel.FlowDirection = FlowDirection.TopDown;
-            _cheatPanel.WrapContents = false;
-            _cheatPanel.AutoScroll = true;
-            _cheatPanel.Padding = new Padding(12, 8, 12, 8);
-            root.Controls.Add(_cheatPanel, 0, 2);
+            _cheatPanel.ColumnCount = 2;
+            _cheatPanel.RowCount = 3;
+            _cheatPanel.Padding = new Padding(4);
+            _cheatPanel.Margin = new Padding(0, 2, 0, 4);
+            _cheatPanel.GrowStyle = TableLayoutPanelGrowStyle.FixedSize;
+            _cheatPanel.AutoScroll = false;
+            _cheatPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+            _cheatPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+            _rootLayout.Controls.Add(_cheatPanel, 0, 2);
 
             _logBox.Dock = DockStyle.Fill;
             _logBox.Multiline = true;
             _logBox.ReadOnly = true;
             _logBox.ScrollBars = ScrollBars.Vertical;
-            _logBox.Font = new Font("Consolas", 9);
-            root.Controls.Add(_logBox, 0, 3);
+            _logBox.WordWrap = false;
+            _logBox.Font = new Font("Consolas", 8);
+            _logBox.Margin = new Padding(0, 2, 0, 0);
+            _rootLayout.Controls.Add(_logBox, 0, 3);
         }
 
         private void OnLoad(object sender, EventArgs e)
@@ -142,44 +153,26 @@ namespace Crysis2RemasteredTrainer
             _cheatPanel.Controls.Clear();
             _runtimes.Clear();
             _hotkeyMap.Clear();
+            _cheatPanel.RowStyles.Clear();
 
-            foreach (CheatDefinition cheat in _profile.Cheats)
+            int totalCheats = _profile.Cheats.Count;
+            int rowCount = Math.Max(1, (int)Math.Ceiling(totalCheats / 2.0));
+            _cheatPanel.RowCount = rowCount;
+            for (int i = 0; i < rowCount; i++)
             {
-                CheatRuntime runtime = new CheatRuntime(cheat);
-                _runtimes[cheat.Id] = runtime;
-
-                Panel row = new Panel();
-                row.Width = 680;
-                row.Height = 72;
-                row.Margin = new Padding(0, 0, 0, 8);
-                row.BorderStyle = BorderStyle.FixedSingle;
-
-                CheckBox toggle = new CheckBox();
-                toggle.Left = 12;
-                toggle.Top = 12;
-                toggle.Width = 340;
-                toggle.Text = cheat.Name + " (" + cheat.Hotkey + ")";
-                toggle.CheckedChanged += delegate
-                {
-                    if (toggle.Focused)
-                    {
-                        ToggleCheat(runtime, toggle.Checked);
-                    }
-                };
-                row.Controls.Add(toggle);
-
-                Label description = new Label();
-                description.Left = 12;
-                description.Top = 36;
-                description.Width = 640;
-                description.Height = 28;
-                description.Text = string.IsNullOrWhiteSpace(cheat.Description) ? "No description." : cheat.Description;
-                row.Controls.Add(description);
-
-                runtime.Toggle = toggle;
-                _cheatPanel.Controls.Add(row);
+                _cheatPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100f / rowCount));
             }
 
+            for (int index = 0; index < totalCheats; index++)
+            {
+                CheatDefinition cheat = _profile.Cheats[index];
+                CheatRuntime runtime = new CheatRuntime(cheat);
+                _runtimes[cheat.Id] = runtime;
+                Panel card = CreateCheatCard(runtime);
+                int row = index / 2;
+                int column = index % 2;
+                _cheatPanel.Controls.Add(card, column, row);
+            }
             _statusLabel.Text = "Status: profile loaded, waiting for process";
             Log("Loaded profile: " + _profile.ProfileName);
         }
@@ -233,7 +226,7 @@ namespace Crysis2RemasteredTrainer
                 runtime.Hook = null;
                 if (runtime.Toggle != null && runtime.Toggle.Checked)
                 {
-                    runtime.Toggle.Checked = false;
+                    SetToggleChecked(runtime.Toggle, false);
                 }
             }
         }
@@ -245,12 +238,12 @@ namespace Crysis2RemasteredTrainer
                 try
                 {
                     EnableCheat(runtime);
-                    runtime.Toggle.Checked = runtime.IsEnabled;
+                    SetToggleChecked(runtime.Toggle, runtime.IsEnabled);
                 }
                 catch (Exception ex)
                 {
                     runtime.IsEnabled = false;
-                    runtime.Toggle.Checked = false;
+                    SetToggleChecked(runtime.Toggle, false);
                     LogError(runtime.Definition.Name + " failed", ex);
                 }
             }
@@ -259,7 +252,7 @@ namespace Crysis2RemasteredTrainer
                 try
                 {
                     DisableCheat(runtime);
-                    runtime.Toggle.Checked = false;
+                    SetToggleChecked(runtime.Toggle, false);
                 }
                 catch (Exception ex)
                 {
@@ -668,7 +661,7 @@ namespace Crysis2RemasteredTrainer
 
                 if (runtime.Toggle != null && runtime.Toggle.Checked)
                 {
-                    runtime.Toggle.Checked = false;
+                    SetToggleChecked(runtime.Toggle, false);
                 }
             }
         }
@@ -745,7 +738,7 @@ namespace Crysis2RemasteredTrainer
                         Log("Hotkey pressed: " + cheat.Hotkey + " -> " + cheat.Name + ".");
                         bool nextState = !runtime.IsEnabled;
                         ToggleCheat(runtime, nextState);
-                        runtime.Toggle.Checked = runtime.IsEnabled;
+                        SetToggleChecked(runtime.Toggle, runtime.IsEnabled);
                     }
                 }
             }
@@ -802,6 +795,59 @@ namespace Crysis2RemasteredTrainer
         private void AppendLineToFileLog(string line)
         {
             AppendRawToFileLog(line + Environment.NewLine);
+        }
+
+        private Panel CreateCheatCard(CheatRuntime runtime)
+        {
+            Panel card = new Panel();
+            card.Dock = DockStyle.Fill;
+            card.Margin = new Padding(4);
+            card.Padding = new Padding(8, 6, 8, 6);
+            card.BorderStyle = BorderStyle.FixedSingle;
+
+            Label description = new Label();
+            description.Dock = DockStyle.Fill;
+            description.Text = string.IsNullOrWhiteSpace(runtime.Definition.Description) ? "No description." : runtime.Definition.Description;
+            description.Font = new Font(Font.FontFamily, 8, FontStyle.Regular);
+            description.AutoEllipsis = true;
+
+            CheckBox toggle = new CheckBox();
+            toggle.Dock = DockStyle.Top;
+            toggle.Height = 24;
+            toggle.Text = runtime.Definition.Name + " (" + runtime.Definition.Hotkey + ")";
+            toggle.Font = new Font(Font.FontFamily, 8.5f, FontStyle.Bold);
+            toggle.CheckedChanged += delegate
+            {
+                if (_suppressToggleEvents)
+                {
+                    return;
+                }
+
+                ToggleCheat(runtime, toggle.Checked);
+            };
+
+            runtime.Toggle = toggle;
+            card.Controls.Add(description);
+            card.Controls.Add(toggle);
+            return card;
+        }
+
+        private void SetToggleChecked(CheckBox toggle, bool isChecked)
+        {
+            if (toggle == null)
+            {
+                return;
+            }
+
+            _suppressToggleEvents = true;
+            try
+            {
+                toggle.Checked = isChecked;
+            }
+            finally
+            {
+                _suppressToggleEvents = false;
+            }
         }
 
         private void AppendRawToFileLog(string content)
