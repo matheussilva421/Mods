@@ -1,28 +1,28 @@
 ﻿# Mods / Trainers
 
-This repository contains a single active project:
+This repository is organized by game so future projects can live side by side without polluting the root.
 
-- `Crysis2RemasteredTrainer/`
+## Games
 
-## Download path
+- `Games/Crysis2Remastered/`
 
-For the simplest Steam Deck Cheat Deck flow, use:
+## Fast download path
 
-- `Crysis2RemasteredTrainer/release/cheat-deck/Crysis2Remastered-CheatDeck.exe`
+For the current Steam Deck Cheat Deck package, use:
+
+- `Games/Crysis2Remastered/Trainer/release/cheat-deck/Crysis2Remastered-CheatDeck.exe`
 
 ## Repository layout
 
-- `Crysis2RemasteredTrainer/` source, profiles, builds, and releases
-- `Docs/Crysis2RemasteredTrainer/` detailed implementation and validation notes
+- `Games/` active projects grouped by game
+- `Docs/Games/` documentation grouped by game
 
-## Main references
+## Current active project
 
-- `Crysis2RemasteredTrainer/README.md`
-- `Crysis2RemasteredTrainer/release/cheat-deck/Crysis2Remastered-CheatDeck.exe`
-- `Crysis2RemasteredTrainer/release/cheat-deck/LEIA-ME-PTBR.md`
-- `Docs/Crysis2RemasteredTrainer/README.md`
+- `Games/Crysis2Remastered/Trainer/`
+- `Docs/Games/Crysis2Remastered/`
 
-## Implemented cheats
+## Implemented cheats for Crysis 2 Remastered
 
 - `F1` Lock Energy
 - `F2` Lock Holster

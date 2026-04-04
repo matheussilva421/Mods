@@ -1,6 +1,6 @@
-﻿# Crysis 2 Remastered Trainer Docs
+﻿# Crysis 2 Remastered Docs
 
-Documentation for the active project is grouped here in reading order.
+Documentation for this game is grouped here in reading order.
 
 ## Index
 
@@ -9,6 +9,7 @@ Documentation for the active project is grouped here in reading order.
 3. `03-teste-execucao-exe-single-2026-04-04.md`
 4. `04-release-final-single-exe-ptbr-2026-04-04.md`
 5. `05-reorganizacao-do-repositorio-2026-04-04.md`
+6. `06-reorganizacao-por-jogos-2026-04-04.md`
 
 ## What each document covers
 
@@ -17,3 +18,5 @@ Documentation for the active project is grouped here in reading order.
 - `03` executable startup validation
 - `04` final PT-BR release packaging decisions
 - `05` repository organization and final layout
+- `06` repository layout grouped by games for future expansion
+

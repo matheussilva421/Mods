@@ -17,7 +17,7 @@ Deixar o GitHub mais limpo para quem entra no repositorio e quer entender rapida
 
 Os arquivos `.cs` do trainer foram movidos para:
 
-- `Crysis2RemasteredTrainer/src/`
+- `Games/Crysis2Remastered/Trainer/src/`
 
 Isso separa claramente codigo-fonte de artefatos de build e de release.
 
@@ -25,7 +25,7 @@ Isso separa claramente codigo-fonte de artefatos de build e de release.
 
 A pasta final mais simples agora e:
 
-- `Crysis2RemasteredTrainer/release/cheat-deck/`
+- `Games/Crysis2Remastered/Trainer/release/cheat-deck/`
 
 Antes, a nomenclatura `single-exe` era tecnica demais. `cheat-deck` descreve melhor o destino do pacote.
 
@@ -33,7 +33,7 @@ Antes, a nomenclatura `single-exe` era tecnica demais. `cheat-deck` descreve mel
 
 A pasta abaixo passou a ser tratada como saida local de build:
 
-- `Crysis2RemasteredTrainer/dist/`
+- `Games/Crysis2Remastered/Trainer/dist/`
 
 Ela continua sendo usada para compilar e testar, mas nao precisa poluir o GitHub.
 
@@ -41,25 +41,25 @@ Ela continua sendo usada para compilar e testar, mas nao precisa poluir o GitHub
 
 Os arquivos em `Docs/` foram agrupados em:
 
-- `Docs/Crysis2RemasteredTrainer/`
+- `Docs/Games/Crysis2Remastered/Trainer/`
 
 Tambem foi criado um indice:
 
-- `Docs/Crysis2RemasteredTrainer/README.md`
+- `Docs/Games/Crysis2Remastered/Trainer/README.md`
 
 ## Estrutura final
 
 ```text
 README.md
 Docs/
-  Crysis2RemasteredTrainer/
+  Games/Crysis2Remastered/Trainer/
     README.md
     01-...
     02-...
     03-...
     04-...
     05-...
-Crysis2RemasteredTrainer/
+Games/Crysis2Remastered/Trainer/
   src/
   profiles/
   release/
@@ -85,3 +85,4 @@ A organizacao agora separa claramente:
 - documentacao
 
 Isso reduz ruido na raiz do repositorio e deixa o GitHub mais facil de navegar.
+

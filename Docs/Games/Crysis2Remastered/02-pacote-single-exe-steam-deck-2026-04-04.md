@@ -30,7 +30,7 @@ Isso elimina a dependência operacional do `profiles/` para o caso simples.
 
 O build agora gera esta saída pronta para cópia:
 
-- `Crysis2RemasteredTrainer/release/single-exe/Crysis2RemasteredTrainer.exe`
+- `Games/Crysis2Remastered/Trainer/release/cheat-deck/Crysis2RemasteredTrainer.exe`
 
 Esse é o artefato indicado para o fluxo mais simples no Cheat Deck.
 
@@ -38,8 +38,8 @@ Esse é o artefato indicado para o fluxo mais simples no Cheat Deck.
 
 O build também continua gerando um pacote editável:
 
-- `Crysis2RemasteredTrainer/release/portable/Crysis2RemasteredTrainer.exe`
-- `Crysis2RemasteredTrainer/release/portable/profiles/crysis2-remastered.fr-v1.4.json`
+- `Games/Crysis2Remastered/Trainer/release/portable/Crysis2RemasteredTrainer.exe`
+- `Games/Crysis2Remastered/Trainer/release/portable/profiles/crysis2-remastered.fr-v1.4.json`
 
 Esse pacote é útil quando for necessário ajustar manualmente o perfil.
 
@@ -47,7 +47,7 @@ Esse pacote é útil quando for necessário ajustar manualmente o perfil.
 
 Use este arquivo:
 
-- `Crysis2RemasteredTrainer/release/single-exe/Crysis2RemasteredTrainer.exe`
+- `Games/Crysis2Remastered/Trainer/release/cheat-deck/Crysis2RemasteredTrainer.exe`
 
 Fluxo:
 
@@ -84,14 +84,14 @@ Resultado:
 
 Foi confirmado que o arquivo abaixo foi gerado:
 
-- `Crysis2RemasteredTrainer/release/single-exe/Crysis2RemasteredTrainer.exe`
+- `Games/Crysis2Remastered/Trainer/release/cheat-deck/Crysis2RemasteredTrainer.exe`
 
 ### Teste 3. Verificação do pacote portable
 
 Foi confirmado que os arquivos abaixo foram gerados:
 
-- `Crysis2RemasteredTrainer/release/portable/Crysis2RemasteredTrainer.exe`
-- `Crysis2RemasteredTrainer/release/portable/profiles/crysis2-remastered.fr-v1.4.json`
+- `Games/Crysis2Remastered/Trainer/release/portable/Crysis2RemasteredTrainer.exe`
+- `Games/Crysis2Remastered/Trainer/release/portable/profiles/crysis2-remastered.fr-v1.4.json`
 
 ## Limite técnico que continua existindo
 
@@ -105,6 +105,7 @@ Esse pacote agora está mais simples de distribuir e usar, mas existe um limite 
 
 Se você quer o caminho mais simples hoje, o arquivo certo é:
 
-- `Crysis2RemasteredTrainer/release/single-exe/Crysis2RemasteredTrainer.exe`
+- `Games/Crysis2Remastered/Trainer/release/cheat-deck/Crysis2RemasteredTrainer.exe`
 
 Esse é o pacote mais próximo do que você pediu: copiar o executável e usar no Cheat Deck sem precisar levar a pasta de perfil junto.
+

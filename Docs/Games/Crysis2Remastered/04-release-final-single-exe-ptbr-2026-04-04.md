@@ -15,7 +15,7 @@ Deixar a release final mais direta para uso no Steam Deck, com foco em duas cois
 
 O executavel principal da release simples passou a ser:
 
-- `Crysis2RemasteredTrainer/release/single-exe/Crysis2Remastered-CheatDeck.exe`
+- `Games/Crysis2Remastered/Trainer/release/cheat-deck/Crysis2Remastered-CheatDeck.exe`
 
 Esse nome reduz ambiguidade no momento de selecionar o app no Cheat Deck.
 
@@ -23,7 +23,7 @@ Esse nome reduz ambiguidade no momento de selecionar o app no Cheat Deck.
 
 Foi criado o arquivo:
 
-- `Crysis2RemasteredTrainer/release/single-exe/LEIA-ME-PTBR.md`
+- `Games/Crysis2Remastered/Trainer/release/cheat-deck/LEIA-ME-PTBR.md`
 
 Esse arquivo resume:
 
@@ -36,8 +36,8 @@ Esse arquivo resume:
 
 O build agora monta automaticamente:
 
-- `release/single-exe/Crysis2Remastered-CheatDeck.exe`
-- `release/single-exe/LEIA-ME-PTBR.md`
+- `release/cheat-deck/Crysis2Remastered-CheatDeck.exe`
+- `release/cheat-deck/LEIA-ME-PTBR.md`
 - `release/portable/Crysis2RemasteredTrainer.exe`
 - `release/portable/profiles/crysis2-remastered.fr-v1.4.json`
 
@@ -55,4 +55,5 @@ Resultado:
 
 O arquivo mais direto para voce usar agora e:
 
-- `Crysis2RemasteredTrainer/release/single-exe/Crysis2Remastered-CheatDeck.exe`
+- `Games/Crysis2Remastered/Trainer/release/cheat-deck/Crysis2Remastered-CheatDeck.exe`
+

@@ -13,7 +13,7 @@ Esta rodada teve dois objetivos:
 
 O repositório foi consolidado para manter um único projeto ativo como fonte principal:
 
-- `Crysis2RemasteredTrainer/`
+- `Games/Crysis2Remastered/Trainer/`
 
 Arquivos e estruturas antigas que deixaram de fazer sentido para o estado atual do projeto foram removidos:
 
@@ -121,20 +121,20 @@ Observação importante:
 
 ### Código
 
-- `Crysis2RemasteredTrainer/MainForm.cs`
-- `Crysis2RemasteredTrainer/NativeMethods.cs`
-- `Crysis2RemasteredTrainer/ProcessMemory.cs`
+- `Games/Crysis2Remastered/Trainer/MainForm.cs`
+- `Games/Crysis2Remastered/Trainer/NativeMethods.cs`
+- `Games/Crysis2Remastered/Trainer/ProcessMemory.cs`
 
 ### Build e perfil
 
-- `Crysis2RemasteredTrainer/build-trainer.ps1`
-- `Crysis2RemasteredTrainer/profiles/crysis2-remastered.fr-v1.4.json`
-- `Crysis2RemasteredTrainer/dist/profiles/crysis2-remastered.fr-v1.4.json`
+- `Games/Crysis2Remastered/Trainer/build-trainer.ps1`
+- `Games/Crysis2Remastered/Trainer/profiles/crysis2-remastered.fr-v1.4.json`
+- `Games/Crysis2Remastered/Trainer/dist/profiles/crysis2-remastered.fr-v1.4.json`
 
 ### Documentação
 
 - `README.md`
-- `Crysis2RemasteredTrainer/README.md`
+- `Games/Crysis2Remastered/Trainer/README.md`
 - `Docs/limpeza-e-expansao-crysis2-trainer-2026-04-04.md`
 
 ## Testes executados
@@ -161,8 +161,8 @@ Resultado obtido:
 
 Foi verificado que o build entrega:
 
-- `Crysis2RemasteredTrainer/dist/Crysis2RemasteredTrainer.exe`
-- `Crysis2RemasteredTrainer/dist/profiles/crysis2-remastered.fr-v1.4.json`
+- `Games/Crysis2Remastered/Trainer/dist/Crysis2RemasteredTrainer.exe`
+- `Games/Crysis2Remastered/Trainer/dist/profiles/crysis2-remastered.fr-v1.4.json`
 
 ### Teste 3. Validação estrutural do repositório
 
@@ -186,3 +186,4 @@ Existem limites que continuam válidos e precisam ser tratados com honestidade t
 2. testar separadamente `F5` e `F6` em combate real;
 3. se um padrão falhar, atualizar a assinatura AOB correspondente antes de alterar a lógica do hook;
 4. manter o repositório enxuto, evitando reintroduzir templates e fluxos antigos que não fazem parte do projeto atual.
+

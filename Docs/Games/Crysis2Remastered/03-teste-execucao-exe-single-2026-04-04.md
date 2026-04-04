@@ -8,7 +8,7 @@ Validar o comportamento mínimo do executável final destinado ao uso com Cheat 
 
 Arquivo testado:
 
-- `Crysis2RemasteredTrainer/release/cheat-deck/Crysis2Remastered-CheatDeck.exe`
+- `Games/Crysis2Remastered/Trainer/release/cheat-deck/Crysis2Remastered-CheatDeck.exe`
 
 ## Teste executado
 
@@ -32,7 +32,7 @@ Resultado observado:
 Saída capturada durante o teste:
 
 ```text
-PROCESS_RUNNING PID=31876 TITLE=Crysis 2 Remastered Trainer
+PROCESS_RUNNING PID=23064 TITLE=Crysis 2 Remastered Trainer
 ```
 
 ## Limite do teste
@@ -50,4 +50,6 @@ Ele não valida neste ambiente:
 O artefato `cheat-deck` com nome final de release está abrindo corretamente como aplicação Windows.
 
 Para o próximo nível de validação, o teste precisa ser feito junto do jogo real no fluxo final do Steam Deck.
+
+
 
