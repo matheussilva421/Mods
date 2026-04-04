@@ -5,6 +5,8 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Crysis2RemasteredTrainer
@@ -19,14 +21,17 @@ namespace Crysis2RemasteredTrainer
         private readonly Label _statusLabel = new Label();
         private readonly Button _refreshButton = new Button();
         private readonly Button _disableAllButton = new Button();
-        private readonly Timer _attachTimer = new Timer();
         private readonly object _fileLogLock = new object();
+        private readonly object _trainerLock = new object();
         private TableLayoutPanel _rootLayout;
         private TrainerProfile _profile;
         private string _profilePath;
         private string _logFilePath;
         private int _attachedProcessId;
+        private int _pollInProgress;
+        private bool _isClosing;
         private HookState _healthCollectorHook;
+        private System.Threading.Timer _pollTimer;
 
         internal MainForm()
         {
@@ -79,13 +84,13 @@ namespace Crysis2RemasteredTrainer
             _disableAllButton.Text = "Disable All";
             _disableAllButton.Width = 96;
             _disableAllButton.Dock = DockStyle.Right;
-            _disableAllButton.Click += delegate { DisableAllCheats(); };
+            _disableAllButton.Click += delegate { QueueTrainerWork(delegate { DisableAllCheats(); }, null); };
             topBar.Controls.Add(_disableAllButton);
 
             _refreshButton.Text = "Refresh Attach";
             _refreshButton.Width = 96;
             _refreshButton.Dock = DockStyle.Right;
-            _refreshButton.Click += delegate { RefreshAttachment(); };
+            _refreshButton.Click += delegate { QueueTrainerWork(delegate { RefreshAttachment(); }, "Refresh attach failed"); };
             topBar.Controls.Add(_refreshButton);
 
             _cheatPanel.Dock = DockStyle.Fill;
@@ -125,24 +130,60 @@ namespace Crysis2RemasteredTrainer
                 _profile = TrainerProfile.LoadFromJson(EmbeddedProfile.GetDefaultProfileJson());
                 Log("External profile file not found. Loaded embedded FR v1.4 profile.");
             }
-            _attachTimer.Interval = _profile.PollIntervalMs;
-            _attachTimer.Tick += OnAttachTimerTick;
             BuildCheatList();
             RegisterHotkeys();
-            RefreshAttachment();
-            _attachTimer.Start();
+            QueueTrainerWork(delegate { RefreshAttachment(); }, "Initial attach failed");
+            _pollTimer = new System.Threading.Timer(OnPollTimerTick, null, _profile.PollIntervalMs, _profile.PollIntervalMs);
         }
 
-        private void OnAttachTimerTick(object sender, EventArgs e)
+        private void OnPollTimerTick(object state)
         {
-            RefreshAttachment();
-            MaintainDynamicCheats();
+            if (_isClosing)
+            {
+                return;
+            }
+
+            if (Interlocked.Exchange(ref _pollInProgress, 1) != 0)
+            {
+                return;
+            }
+
+            try
+            {
+                lock (_trainerLock)
+                {
+                    if (_isClosing)
+                    {
+                        return;
+                    }
+
+                    RefreshAttachment();
+                    MaintainDynamicCheats();
+                }
+            }
+            catch (Exception ex)
+            {
+                LogError("Background poll failed", ex);
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _pollInProgress, 0);
+            }
         }
 
         private void OnFormClosing(object sender, FormClosingEventArgs e)
         {
-            _attachTimer.Stop();
-            DisableAllCheats();
+            _isClosing = true;
+            if (_pollTimer != null)
+            {
+                _pollTimer.Dispose();
+                _pollTimer = null;
+            }
+
+            lock (_trainerLock)
+            {
+                DisableAllCheats();
+            }
             UnregisterHotkeys();
             _memory.Dispose();
         }
@@ -172,7 +213,7 @@ namespace Crysis2RemasteredTrainer
                 int column = index % 2;
                 _cheatPanel.Controls.Add(card, column, row);
             }
-            _statusLabel.Text = "Status: profile loaded, waiting for process";
+            SetStatus("Status: profile loaded, waiting for process");
             Log("Loaded profile: " + _profile.ProfileName);
         }
 
@@ -196,20 +237,21 @@ namespace Crysis2RemasteredTrainer
 
                 if (attached)
                 {
-                    _statusLabel.Text = "Status: attached to " + _memory.Process.ProcessName + " (PID " + _memory.Process.Id + ")";
+                    SetStatus("Status: attached to " + _memory.Process.ProcessName + " (PID " + _memory.Process.Id + ")");
                     if (processChanged && newProcessId != 0)
                     {
                         Log("Attached to " + _memory.Process.ProcessName + " (PID " + _memory.Process.Id + ")" + FormatProcessPath());
+                        EnableAllCheatsOnAttach();
                     }
                 }
                 else
                 {
-                    _statusLabel.Text = "Status: waiting for " + _profile.ProcessName;
+                    SetStatus("Status: waiting for " + _profile.ProcessName);
                 }
             }
             catch (Exception ex)
             {
-                _statusLabel.Text = "Status: attach failed";
+                SetStatus("Status: attach failed");
                 LogError("Attach failed", ex);
             }
         }
@@ -659,6 +701,30 @@ namespace Crysis2RemasteredTrainer
             }
         }
 
+        private void EnableAllCheatsOnAttach()
+        {
+            Log("Auto-enable on attach started.");
+
+            foreach (CheatRuntime runtime in _runtimes.Values.ToList())
+            {
+                try
+                {
+                    if (!runtime.IsEnabled)
+                    {
+                        ToggleCheat(runtime, true);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    runtime.IsEnabled = false;
+                    UpdateRuntimeUi(runtime);
+                    LogError(runtime.Definition.Name + " auto-enable failed", ex);
+                }
+            }
+
+            Log("Auto-enable on attach finished.");
+        }
+
         private void EnsureAttached()
         {
             if (!_memory.IsAttached)
@@ -730,8 +796,7 @@ namespace Crysis2RemasteredTrainer
                     {
                         Log("Hotkey pressed: " + cheat.Hotkey + " -> " + cheat.Name + ".");
                         bool nextState = !runtime.IsEnabled;
-                        ToggleCheat(runtime, nextState);
-                        UpdateRuntimeUi(runtime);
+                        QueueTrainerWork(delegate { ToggleCheat(runtime, nextState); }, cheat.Name + " hotkey failed");
                     }
                 }
             }
@@ -742,10 +807,13 @@ namespace Crysis2RemasteredTrainer
         private void Log(string message)
         {
             string line = DateTime.Now.ToString("HH:mm:ss") + "  " + message;
-            _logBox.AppendText(line + Environment.NewLine);
-            _logBox.SelectionStart = _logBox.TextLength;
-            _logBox.ScrollToCaret();
-            _logBox.Refresh();
+            RunOnUiThread(delegate
+            {
+                _logBox.AppendText(line + Environment.NewLine);
+                _logBox.SelectionStart = _logBox.TextLength;
+                _logBox.ScrollToCaret();
+                _logBox.Refresh();
+            });
             AppendLineToFileLog(line);
         }
 
@@ -828,7 +896,7 @@ namespace Crysis2RemasteredTrainer
             enableButton.Text = "Enable";
             enableButton.Click += delegate
             {
-                RequestCheatState(runtime, true, "button");
+                QueueTrainerWork(delegate { RequestCheatState(runtime, true, "button"); }, runtime.Definition.Name + " enable failed");
             };
 
             Button disableButton = new Button();
@@ -837,7 +905,7 @@ namespace Crysis2RemasteredTrainer
             disableButton.Text = "Disable";
             disableButton.Click += delegate
             {
-                RequestCheatState(runtime, false, "button");
+                QueueTrainerWork(delegate { RequestCheatState(runtime, false, "button"); }, runtime.Definition.Name + " disable failed");
             };
 
             Label stateLabel = new Label();
@@ -880,21 +948,91 @@ namespace Crysis2RemasteredTrainer
                 return;
             }
 
-            if (runtime.EnableButton != null)
+            RunOnUiThread(delegate
             {
-                runtime.EnableButton.Enabled = !runtime.IsEnabled;
+                if (runtime.EnableButton != null)
+                {
+                    runtime.EnableButton.Enabled = !runtime.IsEnabled;
+                }
+
+                if (runtime.DisableButton != null)
+                {
+                    runtime.DisableButton.Enabled = runtime.IsEnabled;
+                }
+
+                if (runtime.StateLabel != null)
+                {
+                    runtime.StateLabel.Text = runtime.IsEnabled ? "Enabled" : "Disabled";
+                    runtime.StateLabel.ForeColor = runtime.IsEnabled ? Color.DarkGreen : Color.DarkRed;
+                }
+            });
+        }
+
+        private void SetStatus(string text)
+        {
+            RunOnUiThread(delegate
+            {
+                _statusLabel.Text = text;
+            });
+        }
+
+        private void RunOnUiThread(Action action)
+        {
+            if (action == null || _isClosing || IsDisposed)
+            {
+                return;
             }
 
-            if (runtime.DisableButton != null)
+            if (!IsHandleCreated)
             {
-                runtime.DisableButton.Enabled = runtime.IsEnabled;
+                return;
             }
 
-            if (runtime.StateLabel != null)
+            if (InvokeRequired)
             {
-                runtime.StateLabel.Text = runtime.IsEnabled ? "Enabled" : "Disabled";
-                runtime.StateLabel.ForeColor = runtime.IsEnabled ? Color.DarkGreen : Color.DarkRed;
+                try
+                {
+                    BeginInvoke((MethodInvoker)delegate { action(); });
+                }
+                catch
+                {
+                }
+
+                return;
             }
+
+            action();
+        }
+
+        private void QueueTrainerWork(Action action, string errorContext)
+        {
+            if (action == null || _isClosing)
+            {
+                return;
+            }
+
+            Task.Run(delegate
+            {
+                lock (_trainerLock)
+                {
+                    if (_isClosing)
+                    {
+                        return;
+                    }
+
+                    try
+                    {
+                        action();
+                    }
+                    catch (Exception ex)
+                    {
+                        if (!string.IsNullOrWhiteSpace(errorContext))
+                        {
+                            LogError(errorContext, ex);
+                        }
+                    }
+                }
+            });
         }
 
         private void AppendRawToFileLog(string content)
