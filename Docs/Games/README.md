@@ -1,7 +1,8 @@
-﻿# Games Docs Index
+﻿# Indice de Documentacao por Jogo
 
-Documentacao agrupada por jogo.
+A documentacao tecnica esta agrupada por jogo.
 
 ## Jogos documentados
 
+- `CrysisRemastered/`
 - `Crysis2Remastered/`

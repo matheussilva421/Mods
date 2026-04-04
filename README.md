@@ -1,32 +1,32 @@
 ﻿# Mods / Trainers
 
-Repositorio para organizar projetos por jogo, com estrutura pronta para crescer sem baguncar a raiz.
+Repositorio para organizar trainers, mods e projetos tecnicos por jogo, com uma estrutura que pode crescer sem poluir a raiz.
 
-## Estrutura do repositorio
+## Estrutura principal
 
 - `Games/` projetos agrupados por jogo
-- `Docs/` documentacao agrupada por jogo e por repositorio
+- `Docs/` documentacao agrupada por jogo e por manutencao do repositorio
 
-## Jogo ativo hoje
+## Jogos disponiveis hoje
 
+- `Games/CrysisRemastered/`
 - `Games/Crysis2Remastered/`
 
-## Download rapido
+## Downloads rapidos
 
-Para usar o pacote atual no Steam Deck com Cheat Deck:
+- Crysis Remastered: `Games/CrysisRemastered/Trainer/crysis_remastered_basic.ct`
+- Crysis 2 Remastered: `Games/Crysis2Remastered/Trainer/release/cheat-deck/Crysis2Remastered-CheatDeck.exe`
 
-- `Games/Crysis2Remastered/Trainer/release/cheat-deck/Crysis2Remastered-CheatDeck.exe`
+## Como o repositorio esta organizado
 
-## Como esta organizado
-
-Cada jogo pode ter mais de um tipo de projeto no futuro, por exemplo:
+Cada jogo pode ter mais de um tipo de projeto no futuro. Exemplos:
 
 - `Trainer/`
 - `Mods/`
 - `Patches/`
 - `Research/`
 
-Exemplo de padrao:
+Padrao atual:
 
 ```text
 Games/
@@ -34,31 +34,20 @@ Games/
     Trainer/
     Mods/
     Patches/
+    Research/
 Docs/
   Games/
     NomeDoJogo/
   Repository/
 ```
 
-## Projeto atual
+## Projetos atuais
 
-- jogo: `Crysis 2 Remastered`
-- tipo: `Trainer`
-- release final: `Games/Crysis2Remastered/Trainer/release/cheat-deck/`
-- documentacao: `Docs/Games/Crysis2Remastered/`
-
-## Cheats implementados no projeto atual
-
-- `F1` Lock Energy
-- `F2` Lock Holster
-- `F3` Lock Clip
-- `F4` Invisible
-- `F5` God Mode
-- `F6` 1-Hit Kill
-- `F12` Disable all
+- `Games/CrysisRemastered/Trainer/` trainer legado baseado em Cheat Engine
+- `Games/Crysis2Remastered/Trainer/` trainer em `.exe` para Cheat Deck
 
 ## Escopo atual
 
 - single-player only
 - foco em Steam Deck + Cheat Deck
-- baseado na tabela `Crysis2 REM_v1.4_Released.CT`
+- projetos baseados em engenharia reversa, tabelas CE e automacao de uso local
