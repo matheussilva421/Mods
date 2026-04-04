@@ -1,6 +1,18 @@
 # Guia de Instalacao e Uso (Steam Deck / SteamOS)
 
-Este guia cobre a instalacao e uso do trainer offline para Crysis Remastered.
+Este guia foi reduzido para refletir o estado real do projeto.
+
+No estado atual, este repositorio nao entrega um cheat funcional validado para Crysis 2 Remastered. Ele entrega apenas:
+
+- uma tabela `.ct` de template com assinaturas placeholder
+- scripts auxiliares de launch e build lock
+- anotacoes sobre as limitacoes atuais
+
+## Estado atual
+
+- `autoexec.cfg` / `devmode` nao esta tratado aqui como caminho funcional para Crysis 2 Remastered.
+- O SteamTinkerLaunch nao tem mais suporte nativo ao Cheat Engine.
+- O arquivo `crysis_remastered_basic.ct` falha por design ate que alguem substitua os AOBs placeholder por assinaturas reais e validadas.
 
 ## Como instalar o Cheat Engine no SteamOS
 
@@ -22,7 +34,7 @@ No Steam Deck, o sistema base e imutavel (read-only). Entao o ideal e instalar f
    - `CE_BIN=/home/deck/tools/cheatengine/cheatengine-x86_64`
    - `TABLE_PATH=/home/deck/tools/crysis-remastered-trainer/crysis_remastered_basic.ct`
 
-Observacao: versoes atuais do STL nao incluem mais instalacao automatica de Cheat Engine, entao a configuracao do binario e manual.
+Observacao: versoes atuais do STL nao incluem mais integracao nativa com Cheat Engine. No melhor caso, ele pode ser aberto como programa externo/custom.
 
 ## Pre-requisitos
 
@@ -38,6 +50,14 @@ Observacao: versoes atuais do STL nao incluem mais instalacao automatica de Chea
 - `steamdeck/check_build.sh`: valida se a build instalada continua travada
 - `steamdeck/build.lock.example`: modelo de lock de build
 - `steamdeck/stl_profile.env`: exemplo de variaveis para STL
+
+## O que este repositorio realmente permite
+
+1. Instalar o binario do Cheat Engine no SteamOS em modo manual.
+2. Abrir o CE via launcher customizado do STL.
+3. Preservar uma build especifica via `build.lock`.
+
+Isso nao significa que os cheats atuais vao funcionar no jogo.
 
 ## Instalacao
 
@@ -64,8 +84,8 @@ Observacao: versoes atuais do STL nao incluem mais instalacao automatica de Chea
 ## Primeiro uso
 
 1. Inicie o jogo pela Steam (com STL ativo).
-2. O launcher abrira o Cheat Engine com `crysis_remastered_basic.ct`.
-3. A tabela faz auto-attach em `CrysisRemastered.exe`.
+2. O launcher pode abrir o Cheat Engine com `crysis_remastered_basic.ct`.
+3. A tabela tenta fazer auto-attach em `CrysisRemastered.exe`.
 4. Hotkeys:
    - `F1`: vida infinita
    - `F2`: municao infinita
@@ -74,13 +94,13 @@ Observacao: versoes atuais do STL nao incluem mais instalacao automatica de Chea
 
 ## Ajuste obrigatorio das assinaturas AOB
 
-A tabela foi entregue como template seguro (falha se AOB nao bater). Voce precisa substituir os padroes placeholders para a sua build travada:
+A tabela foi entregue como template seguro. Voce precisa substituir os padroes placeholders para a sua build travada:
 
 - `CR_HEALTH_WRITE`
 - `CR_AMMO_SUB`
 - `CR_RECOIL_WRITE`
 
-Sem isso, os scripts nao ativam.
+Sem isso, os scripts nao ativam. Hoje, este repositorio nao inclui essas assinaturas reais.
 
 ## Validar build travada
 
@@ -97,7 +117,7 @@ Se o script falhar, a build mudou e as assinaturas devem ser revalidadas.
 - CE nao abre:
   - Verifique `CE_BIN` e se o binario esta no `PATH`.
 - Jogo abre, mas script nao ativa:
-  - Assinaturas AOB incorretas ou desatualizadas.
+  - Isso e esperado com a tabela atual, porque os AOBs sao placeholder.
 - Build check falha:
   - Atualize `build.lock` somente apos revalidar os 3 scripts na build nova.
 
