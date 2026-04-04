@@ -10,6 +10,7 @@ Documentation for this game is grouped here in reading order.
 4. `04-release-final-single-exe-ptbr-2026-04-04.md`
 5. `05-reorganizacao-do-repositorio-2026-04-04.md`
 6. `06-reorganizacao-por-jogos-2026-04-04.md`
+7. `07-como-o-exe-foi-criado-2026-04-04.md`
 
 ## What each document covers
 
@@ -19,4 +20,4 @@ Documentation for this game is grouped here in reading order.
 - `04` final PT-BR release packaging decisions
 - `05` repository organization and final layout
 - `06` repository layout grouped by games for future expansion
-
+- `07` technical explanation of how the executable is built and packaged
