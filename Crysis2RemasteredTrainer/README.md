@@ -6,7 +6,7 @@ This folder contains a standalone Windows trainer executable intended to be laun
 
 If you want the lowest-friction setup, use:
 
-- `release/single-exe/Crysis2RemasteredTrainer.exe`
+- `release/single-exe/Crysis2Remastered-CheatDeck.exe`
 
 This build contains the FR v1.4 profile embedded inside the executable, so the basic flow does not depend on a separate `profiles` folder.
 
@@ -53,7 +53,8 @@ Output:
 
 - `dist/Crysis2RemasteredTrainer.exe`
 - `dist/profiles/crysis2-remastered.fr-v1.4.json`
-- `release/single-exe/Crysis2RemasteredTrainer.exe`
+- `release/single-exe/Crysis2Remastered-CheatDeck.exe`
+- `release/single-exe/LEIA-ME-PTBR.md`
 - `release/portable/Crysis2RemasteredTrainer.exe`
 - `release/portable/profiles/crysis2-remastered.fr-v1.4.json`
 
@@ -61,8 +62,4 @@ Output:
 
 For the simplest path in Cheat Deck, point it to:
 
-- `Crysis2RemasteredTrainer.exe`
-
-Recommended source:
-
-- `release/single-exe/Crysis2RemasteredTrainer.exe`
+- `release/single-exe/Crysis2Remastered-CheatDeck.exe`

@@ -8,6 +8,9 @@ $releaseDir = Join-Path $root "release"
 $singleExeDir = Join-Path $releaseDir "single-exe"
 $portableDir = Join-Path $releaseDir "portable"
 $portableProfilesDir = Join-Path $portableDir "profiles"
+$singleExeName = "Crysis2Remastered-CheatDeck.exe"
+$singleExePath = Join-Path $singleExeDir $singleExeName
+$singleReadmePath = Join-Path $singleExeDir "LEIA-ME-PTBR.md"
 $compiler = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
 
 if (-not (Test-Path $compiler)) {
@@ -60,9 +63,40 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Copy-Item (Join-Path $root "profiles\crysis2-remastered.fr-v1.4.json") $profilesOut -Force
-Copy-Item $outExe (Join-Path $singleExeDir "Crysis2RemasteredTrainer.exe") -Force
+Copy-Item $outExe $singleExePath -Force
 Copy-Item $outExe (Join-Path $portableDir "Crysis2RemasteredTrainer.exe") -Force
 Copy-Item (Join-Path $root "profiles\crysis2-remastered.fr-v1.4.json") $portableProfilesDir -Force
+
+$singleReadme = @"
+# Como usar
+
+Arquivo principal:
+
+- `Crysis2Remastered-CheatDeck.exe`
+
+Uso rapido:
+
+1. copie esse `.exe` para o Steam Deck;
+2. aponte o Cheat Deck para esse arquivo;
+3. abra o jogo junto com o trainer;
+4. use as teclas abaixo.
+
+Hotkeys:
+
+- `F1` Lock Energy
+- `F2` Lock Holster
+- `F3` Lock Clip
+- `F4` Invisible
+- `F5` God Mode
+- `F6` 1-Hit Kill
+- `F12` Disable all
+
+Observacao:
+
+- esse `.exe` ja tem o perfil embutido;
+- para o caso simples, nao precisa copiar pasta `profiles`.
+"@
+Set-Content -Path $singleReadmePath -Value $singleReadme -Encoding UTF8
 
 Write-Host "Built trainer to $outDir"
 Write-Host "Prepared single-exe package in $singleExeDir"
