@@ -36,7 +36,8 @@ namespace Crysis2RemasteredTrainer
                 ? processName.Substring(0, processName.Length - 4)
                 : processName;
 
-            Process candidate = Process.GetProcessesByName(normalized).FirstOrDefault();
+            Process[] candidates = Process.GetProcessesByName(normalized);
+            Process candidate = ChooseBestCandidate(candidates);
             if (candidate == null)
             {
                 Detach();
@@ -60,6 +61,23 @@ namespace Crysis2RemasteredTrainer
             return true;
         }
 
+        internal string GetProcessPath()
+        {
+            if (_process == null)
+            {
+                return string.Empty;
+            }
+
+            try
+            {
+                return _process.MainModule == null ? string.Empty : _process.MainModule.FileName;
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
         internal void Detach()
         {
             if (_handle != IntPtr.Zero)
@@ -71,9 +89,10 @@ namespace Crysis2RemasteredTrainer
             _process = null;
         }
 
-        internal IntPtr GetModuleBase(string moduleName, out int moduleSize)
+        internal IntPtr GetModuleBase(string moduleName, out int moduleSize, out string resolvedModuleName)
         {
             moduleSize = 0;
+            resolvedModuleName = string.Empty;
             if (!IsAttached)
             {
                 return IntPtr.Zero;
@@ -88,8 +107,22 @@ namespace Crysis2RemasteredTrainer
                 if (string.Equals(module.ModuleName, effectiveModule, StringComparison.OrdinalIgnoreCase))
                 {
                     moduleSize = module.ModuleMemorySize;
+                    resolvedModuleName = module.ModuleName;
                     return module.BaseAddress;
                 }
+            }
+
+            try
+            {
+                if (_process.MainModule != null)
+                {
+                    moduleSize = _process.MainModule.ModuleMemorySize;
+                    resolvedModuleName = _process.MainModule.ModuleName;
+                    return _process.MainModule.BaseAddress;
+                }
+            }
+            catch
+            {
             }
 
             return IntPtr.Zero;
@@ -97,11 +130,17 @@ namespace Crysis2RemasteredTrainer
 
         internal byte[] ReadBytes(IntPtr address, int size)
         {
-            byte[] buffer = new byte[size];
-            IntPtr bytesRead;
-            if (!NativeMethods.ReadProcessMemory(_handle, address, buffer, size, out bytesRead))
+            byte[] buffer;
+            int bytesRead;
+            string error;
+            if (!TryReadBytes(address, size, out buffer, out bytesRead, out error))
             {
-                throw new Win32Exception();
+                throw new Win32Exception(error);
+            }
+
+            if (bytesRead != size)
+            {
+                throw new InvalidOperationException("Partial memory read at 0x" + address.ToInt64().ToString("X") + ". Expected " + size + " bytes, got " + bytesRead + ".");
             }
 
             return buffer;
@@ -109,7 +148,36 @@ namespace Crysis2RemasteredTrainer
 
         internal byte[] ReadModule(IntPtr baseAddress, int size)
         {
-            return ReadBytes(baseAddress, size);
+            byte[] buffer = new byte[size];
+            const int chunkSize = 0x1000;
+            int readableChunks = 0;
+
+            for (int offset = 0; offset < size; offset += chunkSize)
+            {
+                int bytesToRead = Math.Min(chunkSize, size - offset);
+                byte[] chunk;
+                int chunkBytesRead;
+                string error;
+                if (!TryReadBytes(IntPtr.Add(baseAddress, offset), bytesToRead, out chunk, out chunkBytesRead, out error))
+                {
+                    continue;
+                }
+
+                if (chunkBytesRead <= 0)
+                {
+                    continue;
+                }
+
+                Buffer.BlockCopy(chunk, 0, buffer, offset, chunkBytesRead);
+                readableChunks++;
+            }
+
+            if (readableChunks == 0)
+            {
+                throw new InvalidOperationException("Could not read any memory from target module.");
+            }
+
+            return buffer;
         }
 
         internal void WriteBytes(IntPtr address, byte[] data)
@@ -216,6 +284,49 @@ namespace Crysis2RemasteredTrainer
                 (UIntPtr)size,
                 NativeMethods.MemCommit | NativeMethods.MemReserve,
                 NativeMethods.PageExecuteReadWrite);
+        }
+
+        private bool TryReadBytes(IntPtr address, int size, out byte[] buffer, out int bytesRead, out string error)
+        {
+            buffer = new byte[size];
+            bytesRead = 0;
+            error = string.Empty;
+
+            IntPtr nativeBytesRead;
+            if (!NativeMethods.ReadProcessMemory(_handle, address, buffer, size, out nativeBytesRead))
+            {
+                error = new Win32Exception().Message;
+                return false;
+            }
+
+            bytesRead = nativeBytesRead.ToInt32();
+            return true;
+        }
+
+        private static Process ChooseBestCandidate(Process[] candidates)
+        {
+            if (candidates == null || candidates.Length == 0)
+            {
+                return null;
+            }
+
+            return candidates
+                .OrderByDescending(candidate => SafeGet(() => candidate.MainWindowHandle != IntPtr.Zero, false))
+                .ThenByDescending(candidate => SafeGet(() => candidate.WorkingSet64, 0L))
+                .ThenByDescending(candidate => SafeGet(() => candidate.StartTime.Ticks, 0L))
+                .FirstOrDefault();
+        }
+
+        private static T SafeGet<T>(Func<T> getter, T fallback)
+        {
+            try
+            {
+                return getter();
+            }
+            catch
+            {
+                return fallback;
+            }
         }
 
         public void Dispose()

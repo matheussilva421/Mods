@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Windows.Forms;
 
 namespace Crysis2RemasteredTrainer
@@ -18,8 +20,10 @@ namespace Crysis2RemasteredTrainer
         private readonly Button _refreshButton = new Button();
         private readonly Button _disableAllButton = new Button();
         private readonly Timer _attachTimer = new Timer();
+        private readonly object _fileLogLock = new object();
         private TrainerProfile _profile;
         private string _profilePath;
+        private string _logFilePath;
         private int _attachedProcessId;
         private HookState _healthCollectorHook;
 
@@ -97,6 +101,9 @@ namespace Crysis2RemasteredTrainer
 
         private void OnLoad(object sender, EventArgs e)
         {
+            InitializeFileLog();
+            Log("Session started.");
+            Log("File log: " + _logFilePath);
             _profilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "profiles", "crysis2-remastered.fr-v1.4.json");
             if (File.Exists(_profilePath))
             {
@@ -183,8 +190,14 @@ namespace Crysis2RemasteredTrainer
             {
                 bool attached = _memory.Attach(_profile.ProcessName);
                 int newProcessId = attached ? _memory.ProcessId : 0;
-                if (newProcessId != _attachedProcessId)
+                bool processChanged = newProcessId != _attachedProcessId;
+                if (processChanged)
                 {
+                    if (_attachedProcessId != 0 && newProcessId == 0)
+                    {
+                        Log("Detached from PID " + _attachedProcessId + ".");
+                    }
+
                     ResetProcessScopedState();
                     _attachedProcessId = newProcessId;
                 }
@@ -192,6 +205,10 @@ namespace Crysis2RemasteredTrainer
                 if (attached)
                 {
                     _statusLabel.Text = "Status: attached to " + _memory.Process.ProcessName + " (PID " + _memory.Process.Id + ")";
+                    if (processChanged && newProcessId != 0)
+                    {
+                        Log("Attached to " + _memory.Process.ProcessName + " (PID " + _memory.Process.Id + ")" + FormatProcessPath());
+                    }
                 }
                 else
                 {
@@ -201,7 +218,7 @@ namespace Crysis2RemasteredTrainer
             catch (Exception ex)
             {
                 _statusLabel.Text = "Status: attach failed";
-                Log("Attach failed: " + ex.Message);
+                LogError("Attach failed", ex);
             }
         }
 
@@ -234,7 +251,7 @@ namespace Crysis2RemasteredTrainer
                 {
                     runtime.IsEnabled = false;
                     runtime.Toggle.Checked = false;
-                    Log(runtime.Definition.Name + " failed: " + ex.Message);
+                    LogError(runtime.Definition.Name + " failed", ex);
                 }
             }
             else
@@ -246,7 +263,7 @@ namespace Crysis2RemasteredTrainer
                 }
                 catch (Exception ex)
                 {
-                    Log(runtime.Definition.Name + " restore failed: " + ex.Message);
+                    LogError(runtime.Definition.Name + " restore failed", ex);
                 }
             }
         }
@@ -255,6 +272,7 @@ namespace Crysis2RemasteredTrainer
         {
             EnsureAttached();
             string actionType = GetActionType(runtime.Definition);
+            Log("Enabling " + runtime.Definition.Name + " using action type " + actionType + ".");
 
             if (actionType == "godmode")
             {
@@ -277,13 +295,15 @@ namespace Crysis2RemasteredTrainer
             }
 
             IntPtr address = ResolveAddress(runtime);
+            Log(runtime.Definition.Name + " resolved target address 0x" + address.ToInt64().ToString("X") + ".");
             byte[] expectedBytes = ByteHelper.ParseBytes(runtime.Definition.ExpectedBytes);
             if (expectedBytes.Length > 0)
             {
                 byte[] currentBytes = _memory.ReadBytes(address, expectedBytes.Length);
                 if (!currentBytes.SequenceEqual(expectedBytes))
                 {
-                    throw new InvalidOperationException("Expected bytes do not match. Update the signature or patch.");
+                    throw new InvalidOperationException(
+                        "Expected bytes do not match. Expected [" + FormatBytes(expectedBytes) + "] but found [" + FormatBytes(currentBytes) + "].");
                 }
             }
 
@@ -435,6 +455,7 @@ namespace Crysis2RemasteredTrainer
             }
 
             IntPtr hookAddress = FindPatternAddress("48 8B 4B 08 45 8B CC");
+            Log("Installing God Mode collector hook at 0x" + hookAddress.ToInt64().ToString("X") + ".");
             byte[] originalBytes = _memory.ReadBytes(hookAddress, 7);
             IntPtr dataAddress = _memory.Allocate(8);
             IntPtr caveAddress = _memory.AllocateNear(hookAddress, 128);
@@ -465,6 +486,7 @@ namespace Crysis2RemasteredTrainer
         private HookState InstallOneHitKillHook()
         {
             IntPtr hookAddress = FindPatternAddress("C5 FA 10 81 64 03 00 00");
+            Log("Installing 1-Hit Kill hook at 0x" + hookAddress.ToInt64().ToString("X") + ".");
             byte[] originalBytes = _memory.ReadBytes(hookAddress, 8);
             IntPtr caveAddress = _memory.AllocateNear(hookAddress, 128);
 
@@ -519,12 +541,14 @@ namespace Crysis2RemasteredTrainer
         private IntPtr FindPatternAddress(string pattern)
         {
             int moduleSize;
-            IntPtr moduleBase = _memory.GetModuleBase(_profile.ModuleName, out moduleSize);
+            string resolvedModuleName;
+            IntPtr moduleBase = _memory.GetModuleBase(_profile.ModuleName, out moduleSize, out resolvedModuleName);
             if (moduleBase == IntPtr.Zero || moduleSize <= 0)
             {
                 throw new InvalidOperationException("Module not found: " + _profile.ModuleName);
             }
 
+            Log("Scanning module " + resolvedModuleName + " at 0x" + moduleBase.ToInt64().ToString("X") + " (size 0x" + moduleSize.ToString("X") + ") for pattern " + pattern + ".");
             byte[] moduleBytes = _memory.ReadModule(moduleBase, moduleSize);
             int found = PatternScanner.Find(moduleBytes, pattern);
             if (found < 0)
@@ -569,12 +593,14 @@ namespace Crysis2RemasteredTrainer
             }
 
             int moduleSize;
-            IntPtr moduleBase = _memory.GetModuleBase(_profile.ModuleName, out moduleSize);
+            string resolvedModuleName;
+            IntPtr moduleBase = _memory.GetModuleBase(_profile.ModuleName, out moduleSize, out resolvedModuleName);
             if (moduleBase == IntPtr.Zero || moduleSize <= 0)
             {
                 throw new InvalidOperationException("Module not found: " + _profile.ModuleName);
             }
 
+            Log("Resolving " + runtime.Definition.Name + " inside module " + resolvedModuleName + " at 0x" + moduleBase.ToInt64().ToString("X") + " (size 0x" + moduleSize.ToString("X") + ").");
             int? moduleOffset = ByteHelper.ParseHexInt(runtime.Definition.ModuleOffsetHex);
             if (moduleOffset.HasValue)
             {
@@ -590,7 +616,7 @@ namespace Crysis2RemasteredTrainer
             int found = PatternScanner.Find(moduleBytes, runtime.Definition.Pattern);
             if (found < 0)
             {
-                throw new InvalidOperationException("Pattern not found.");
+                throw new InvalidOperationException("Pattern not found: " + runtime.Definition.Pattern);
             }
 
             if (runtime.Definition.RelativeReadOffset != 0)
@@ -637,7 +663,7 @@ namespace Crysis2RemasteredTrainer
                 }
                 catch (Exception ex)
                 {
-                    Log(runtime.Definition.Name + " disable-all error: " + ex.Message);
+                    LogError(runtime.Definition.Name + " disable-all error", ex);
                 }
 
                 if (runtime.Toggle != null && runtime.Toggle.Checked)
@@ -676,9 +702,16 @@ namespace Crysis2RemasteredTrainer
                     _hotkeyMap[id] = cheat;
                     id++;
                 }
+                else
+                {
+                    Log("Hotkey registration failed for " + cheat.Name + " (" + cheat.Hotkey + "): " + GetLastWin32ErrorMessage() + ".");
+                }
             }
 
-            NativeMethods.RegisterHotKey(Handle, 999, 0, (uint)Keys.F12);
+            if (!NativeMethods.RegisterHotKey(Handle, 999, 0, (uint)Keys.F12))
+            {
+                Log("Hotkey registration failed for F12 panic key: " + GetLastWin32ErrorMessage() + ".");
+            }
         }
 
         private void UnregisterHotkeys()
@@ -709,6 +742,7 @@ namespace Crysis2RemasteredTrainer
                     CheatRuntime runtime;
                     if (_runtimes.TryGetValue(cheat.Id, out runtime))
                     {
+                        Log("Hotkey pressed: " + cheat.Hotkey + " -> " + cheat.Name + ".");
                         bool nextState = !runtime.IsEnabled;
                         ToggleCheat(runtime, nextState);
                         runtime.Toggle.Checked = runtime.IsEnabled;
@@ -723,6 +757,96 @@ namespace Crysis2RemasteredTrainer
         {
             string line = DateTime.Now.ToString("HH:mm:ss") + "  " + message;
             _logBox.AppendText(line + Environment.NewLine);
+            AppendLineToFileLog(line);
+        }
+
+        private void LogError(string context, Exception ex)
+        {
+            Log(context + ": " + ex.Message);
+
+            if (string.IsNullOrWhiteSpace(_logFilePath))
+            {
+                return;
+            }
+
+            StringBuilder details = new StringBuilder();
+            details.AppendLine("[" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "] ERROR " + context);
+            details.AppendLine("Type: " + ex.GetType().FullName);
+            details.AppendLine("Message: " + ex.Message);
+
+            Exception inner = ex.InnerException;
+            while (inner != null)
+            {
+                details.AppendLine("Inner: " + inner.GetType().FullName + " - " + inner.Message);
+                inner = inner.InnerException;
+            }
+
+            details.AppendLine("Stack:");
+            details.AppendLine(ex.StackTrace ?? "(no stack trace)");
+            details.AppendLine();
+            AppendRawToFileLog(details.ToString());
+        }
+
+        private void InitializeFileLog()
+        {
+            _logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Crysis2RemasteredTrainer.log");
+
+            StringBuilder header = new StringBuilder();
+            header.AppendLine("============================================================");
+            header.AppendLine("Session started at " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+            header.AppendLine("Log file: " + _logFilePath);
+            header.AppendLine("============================================================");
+            AppendRawToFileLog(header.ToString());
+        }
+
+        private void AppendLineToFileLog(string line)
+        {
+            AppendRawToFileLog(line + Environment.NewLine);
+        }
+
+        private void AppendRawToFileLog(string content)
+        {
+            if (string.IsNullOrWhiteSpace(_logFilePath))
+            {
+                return;
+            }
+
+            try
+            {
+                lock (_fileLogLock)
+                {
+                    File.AppendAllText(_logFilePath, content, Encoding.UTF8);
+                }
+            }
+            catch
+            {
+            }
+        }
+
+        private string FormatProcessPath()
+        {
+            string processPath = _memory.GetProcessPath();
+            if (string.IsNullOrWhiteSpace(processPath))
+            {
+                return string.Empty;
+            }
+
+            return " at " + processPath;
+        }
+
+        private static string FormatBytes(byte[] bytes)
+        {
+            if (bytes == null || bytes.Length == 0)
+            {
+                return string.Empty;
+            }
+
+            return BitConverter.ToString(bytes).Replace("-", " ");
+        }
+
+        private static string GetLastWin32ErrorMessage()
+        {
+            return new Win32Exception(System.Runtime.InteropServices.Marshal.GetLastWin32Error()).Message;
         }
 
         private sealed class CheatRuntime
@@ -750,4 +874,3 @@ namespace Crysis2RemasteredTrainer
         }
     }
 }
-
