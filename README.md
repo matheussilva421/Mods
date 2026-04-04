@@ -1,49 +1,39 @@
 ﻿# Mods / Trainers
 
-This repository is organized around a single active project:
-
-## Crysis 2 Remastered Cheat Deck trainer
-
-Primary folder:
+This repository contains a single active project:
 
 - `Crysis2RemasteredTrainer/`
 
-Fastest package for Steam Deck Cheat Deck:
+## Download path
 
-- `Crysis2RemasteredTrainer/release/single-exe/Crysis2Remastered-CheatDeck.exe`
+For the simplest Steam Deck Cheat Deck flow, use:
 
-What is included:
+- `Crysis2RemasteredTrainer/release/cheat-deck/Crysis2Remastered-CheatDeck.exe`
 
-- standalone Windows trainer `.exe`
-- single-exe package with embedded FR profile
-- portable package with editable external profile
-- source code for the trainer
-- build script
-- detailed documentation in `Docs/`
+## Repository layout
 
-Main files:
+- `Crysis2RemasteredTrainer/` source, profiles, builds, and releases
+- `Docs/Crysis2RemasteredTrainer/` detailed implementation and validation notes
 
-- `Crysis2RemasteredTrainer/release/single-exe/Crysis2Remastered-CheatDeck.exe`
-- `Crysis2RemasteredTrainer/release/single-exe/LEIA-ME-PTBR.md`
-- `Crysis2RemasteredTrainer/release/portable/Crysis2RemasteredTrainer.exe`
-- `Crysis2RemasteredTrainer/profiles/crysis2-remastered.fr-v1.4.json`
+## Main references
+
 - `Crysis2RemasteredTrainer/README.md`
-- `Docs/limpeza-e-expansao-crysis2-trainer-2026-04-04.md`
-- `Docs/pacote-single-exe-steam-deck-2026-04-04.md`
+- `Crysis2RemasteredTrainer/release/cheat-deck/Crysis2Remastered-CheatDeck.exe`
+- `Crysis2RemasteredTrainer/release/cheat-deck/LEIA-ME-PTBR.md`
+- `Docs/Crysis2RemasteredTrainer/README.md`
 
-Current implemented cheats:
+## Implemented cheats
 
 - `F1` Lock Energy
 - `F2` Lock Holster
-- `F3` Lock Clip (No Reload)
+- `F3` Lock Clip
 - `F4` Invisible
 - `F5` God Mode
 - `F6` 1-Hit Kill
-- `F12` Disable all active cheats
+- `F12` Disable all
 
-Important:
+## Scope
 
-- built for single-player only
-- designed for the Cheat Deck flow on Steam Deck
+- single-player only
+- intended for Cheat Deck on Steam Deck
 - based on the Fearless Revolution `Crysis2 REM_v1.4_Released.CT` table
-- not runtime-validated against a live game process in this environment
