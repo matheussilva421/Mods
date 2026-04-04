@@ -1,8 +1,8 @@
 {
-  "ProfileName": "Crysis 2 Remastered FR v1.4 direct patches",
+  "ProfileName": "Crysis 2 Remastered FR v1.4 direct trainer",
   "ProcessName": "Crysis2Remastered.exe",
   "ModuleName": "Crysis2Remastered.exe",
-  "PollIntervalMs": 1000,
+  "PollIntervalMs": 250,
   "Cheats": [
     {
       "Id": "lock-energy",
@@ -18,7 +18,7 @@
       "DisableBytes": "",
       "RelativeReadOffset": 0,
       "RelativeAdjust": 0,
-      "Description": "Ported from the FR v1.4 table. Freezes the current energy value by skipping the write instruction."
+      "Description": "Ported from the FR v1.4 table. Skips the energy write so the current energy value stays locked."
     },
     {
       "Id": "lock-holster",
@@ -34,7 +34,7 @@
       "DisableBytes": "",
       "RelativeReadOffset": 0,
       "RelativeAdjust": 0,
-      "Description": "Direct patch derived from the FR holster script. Keeps total ammo and grenades from dropping normally."
+      "Description": "Direct patch derived from the FR holster script. Keeps reserve ammo and grenades from dropping normally."
     },
     {
       "Id": "lock-clip",
@@ -66,7 +66,39 @@
       "DisableBytes": "00",
       "RelativeReadOffset": -4,
       "RelativeAdjust": 0,
-      "Description": "Writes the ai_IgnorePlayer flag target used by the FR table. Equivalent to toggling the invisible byte on and off."
+      "Description": "Writes the ai_IgnorePlayer flag target used by the FR table. Equivalent to the table's invisible toggle."
+    },
+    {
+      "Id": "god-mode",
+      "Name": "God Mode",
+      "Hotkey": "F5",
+      "ActionType": "godmode",
+      "Pattern": "",
+      "PatchOffset": 0,
+      "ModuleOffsetHex": "",
+      "ExpectedBytes": "",
+      "PatchBytes": "",
+      "EnableBytes": "",
+      "DisableBytes": "",
+      "RelativeReadOffset": 0,
+      "RelativeAdjust": 0,
+      "Description": "Uses a health-pointer collector hook from the FR table, then keeps player health synced to max health on a timer."
+    },
+    {
+      "Id": "one-hit-kill",
+      "Name": "1-Hit Kill",
+      "Hotkey": "F6",
+      "ActionType": "onehitkill",
+      "Pattern": "",
+      "PatchOffset": 0,
+      "ModuleOffsetHex": "",
+      "ExpectedBytes": "",
+      "PatchBytes": "",
+      "EnableBytes": "",
+      "DisableBytes": "",
+      "RelativeReadOffset": 0,
+      "RelativeAdjust": 0,
+      "Description": "Installs a code cave based on the FR v1.4 table to clamp enemy health before the game reads it back."
     }
   ]
 }

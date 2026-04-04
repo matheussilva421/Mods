@@ -20,6 +20,11 @@ namespace Crysis2RemasteredTrainer
             get { return _process; }
         }
 
+        internal int ProcessId
+        {
+            get { return _process == null ? 0 : _process.Id; }
+        }
+
         internal bool Attach(string processName)
         {
             if (string.IsNullOrWhiteSpace(processName))
@@ -128,6 +133,89 @@ namespace Crysis2RemasteredTrainer
                 uint unused;
                 NativeMethods.VirtualProtectEx(_handle, address, (UIntPtr)data.Length, oldProtect, out unused);
             }
+        }
+
+        internal IntPtr Allocate(int size)
+        {
+            IntPtr address = NativeMethods.VirtualAllocEx(
+                _handle,
+                IntPtr.Zero,
+                (UIntPtr)size,
+                NativeMethods.MemCommit | NativeMethods.MemReserve,
+                NativeMethods.PageExecuteReadWrite);
+
+            if (address == IntPtr.Zero)
+            {
+                throw new Win32Exception();
+            }
+
+            return address;
+        }
+
+        internal IntPtr AllocateNear(IntPtr nearAddress, int size)
+        {
+            long target = nearAddress.ToInt64();
+            const long range = 0x70000000;
+            const long step = 0x10000;
+
+            for (long offset = 0; offset <= range; offset += step)
+            {
+                long low = target - offset;
+                if (low > 0x10000)
+                {
+                    IntPtr lowPtr = TryAllocateAt(new IntPtr(low), size);
+                    if (lowPtr != IntPtr.Zero)
+                    {
+                        return lowPtr;
+                    }
+                }
+
+                if (offset == 0)
+                {
+                    continue;
+                }
+
+                long high = target + offset;
+                if (high > 0 && high < 0x00007FFFFFFF0000)
+                {
+                    IntPtr highPtr = TryAllocateAt(new IntPtr(high), size);
+                    if (highPtr != IntPtr.Zero)
+                    {
+                        return highPtr;
+                    }
+                }
+            }
+
+            IntPtr fallback = TryAllocateAt(IntPtr.Zero, size);
+            if (fallback == IntPtr.Zero)
+            {
+                throw new Win32Exception();
+            }
+
+            return fallback;
+        }
+
+        internal void Free(IntPtr address)
+        {
+            if (address == IntPtr.Zero)
+            {
+                return;
+            }
+
+            if (!NativeMethods.VirtualFreeEx(_handle, address, UIntPtr.Zero, NativeMethods.MemRelease))
+            {
+                throw new Win32Exception();
+            }
+        }
+
+        private IntPtr TryAllocateAt(IntPtr address, int size)
+        {
+            return NativeMethods.VirtualAllocEx(
+                _handle,
+                address,
+                (UIntPtr)size,
+                NativeMethods.MemCommit | NativeMethods.MemReserve,
+                NativeMethods.PageExecuteReadWrite);
         }
 
         public void Dispose()

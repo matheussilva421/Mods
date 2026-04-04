@@ -20,6 +20,8 @@ namespace Crysis2RemasteredTrainer
         private readonly Timer _attachTimer = new Timer();
         private TrainerProfile _profile;
         private string _profilePath;
+        private int _attachedProcessId;
+        private HookState _healthCollectorHook;
 
         internal MainForm()
         {
@@ -32,8 +34,8 @@ namespace Crysis2RemasteredTrainer
         {
             Text = "Crysis 2 Remastered Trainer";
             Width = 760;
-            Height = 560;
-            MinimumSize = new Size(640, 480);
+            Height = 580;
+            MinimumSize = new Size(680, 500);
             StartPosition = FormStartPosition.CenterScreen;
 
             TableLayoutPanel root = new TableLayoutPanel();
@@ -105,11 +107,17 @@ namespace Crysis2RemasteredTrainer
 
             _profile = TrainerProfile.Load(_profilePath);
             _attachTimer.Interval = _profile.PollIntervalMs;
-            _attachTimer.Tick += delegate { RefreshAttachment(); };
+            _attachTimer.Tick += OnAttachTimerTick;
             BuildCheatList();
             RegisterHotkeys();
             RefreshAttachment();
             _attachTimer.Start();
+        }
+
+        private void OnAttachTimerTick(object sender, EventArgs e)
+        {
+            RefreshAttachment();
+            MaintainDynamicCheats();
         }
 
         private void OnFormClosing(object sender, FormClosingEventArgs e)
@@ -140,7 +148,7 @@ namespace Crysis2RemasteredTrainer
                 CheckBox toggle = new CheckBox();
                 toggle.Left = 12;
                 toggle.Top = 12;
-                toggle.Width = 320;
+                toggle.Width = 340;
                 toggle.Text = cheat.Name + " (" + cheat.Hotkey + ")";
                 toggle.CheckedChanged += delegate
                 {
@@ -172,6 +180,13 @@ namespace Crysis2RemasteredTrainer
             try
             {
                 bool attached = _memory.Attach(_profile.ProcessName);
+                int newProcessId = attached ? _memory.ProcessId : 0;
+                if (newProcessId != _attachedProcessId)
+                {
+                    ResetProcessScopedState();
+                    _attachedProcessId = newProcessId;
+                }
+
                 if (attached)
                 {
                     _statusLabel.Text = "Status: attached to " + _memory.Process.ProcessName + " (PID " + _memory.Process.Id + ")";
@@ -188,6 +203,22 @@ namespace Crysis2RemasteredTrainer
             }
         }
 
+        private void ResetProcessScopedState()
+        {
+            _healthCollectorHook = null;
+            foreach (CheatRuntime runtime in _runtimes.Values)
+            {
+                runtime.IsEnabled = false;
+                runtime.OriginalBytes = null;
+                runtime.PatchedAddress = IntPtr.Zero;
+                runtime.Hook = null;
+                if (runtime.Toggle != null && runtime.Toggle.Checked)
+                {
+                    runtime.Toggle.Checked = false;
+                }
+            }
+        }
+
         private void ToggleCheat(CheatRuntime runtime, bool enable)
         {
             if (enable)
@@ -195,10 +226,11 @@ namespace Crysis2RemasteredTrainer
                 try
                 {
                     EnableCheat(runtime);
-                    runtime.Toggle.Checked = true;
+                    runtime.Toggle.Checked = runtime.IsEnabled;
                 }
                 catch (Exception ex)
                 {
+                    runtime.IsEnabled = false;
                     runtime.Toggle.Checked = false;
                     Log(runtime.Definition.Name + " failed: " + ex.Message);
                 }
@@ -208,6 +240,7 @@ namespace Crysis2RemasteredTrainer
                 try
                 {
                     DisableCheat(runtime);
+                    runtime.Toggle.Checked = false;
                 }
                 catch (Exception ex)
                 {
@@ -219,9 +252,29 @@ namespace Crysis2RemasteredTrainer
         private void EnableCheat(CheatRuntime runtime)
         {
             EnsureAttached();
+            string actionType = GetActionType(runtime.Definition);
+
+            if (actionType == "godmode")
+            {
+                InstallHealthCollectorHook();
+                runtime.IsEnabled = true;
+                Log("Enabled: " + runtime.Definition.Name);
+                return;
+            }
+
+            if (actionType == "onehitkill")
+            {
+                if (runtime.Hook == null)
+                {
+                    runtime.Hook = InstallOneHitKillHook();
+                }
+
+                runtime.IsEnabled = true;
+                Log("Enabled: " + runtime.Definition.Name);
+                return;
+            }
 
             IntPtr address = ResolveAddress(runtime);
-            string actionType = GetActionType(runtime.Definition);
             byte[] expectedBytes = ByteHelper.ParseBytes(runtime.Definition.ExpectedBytes);
             if (expectedBytes.Length > 0)
             {
@@ -270,6 +323,30 @@ namespace Crysis2RemasteredTrainer
 
         private void DisableCheat(CheatRuntime runtime)
         {
+            string actionType = GetActionType(runtime.Definition);
+            if (actionType == "godmode")
+            {
+                runtime.IsEnabled = false;
+                if (!IsAnyRuntimeEnabled("godmode"))
+                {
+                    UninstallHook(ref _healthCollectorHook);
+                }
+                Log("Disabled: " + runtime.Definition.Name);
+                return;
+            }
+
+            if (actionType == "onehitkill")
+            {
+                if (runtime.Hook != null)
+                {
+                    UninstallHook(ref runtime.Hook);
+                }
+
+                runtime.IsEnabled = false;
+                Log("Disabled: " + runtime.Definition.Name);
+                return;
+            }
+
             if (!runtime.IsEnabled || runtime.PatchedAddress == IntPtr.Zero)
             {
                 runtime.IsEnabled = false;
@@ -277,7 +354,6 @@ namespace Crysis2RemasteredTrainer
             }
 
             EnsureAttached();
-            string actionType = GetActionType(runtime.Definition);
             if (actionType == "setbytes")
             {
                 byte[] disableBytes = ByteHelper.ParseBytes(runtime.Definition.DisableBytes);
@@ -296,7 +372,191 @@ namespace Crysis2RemasteredTrainer
             }
 
             runtime.IsEnabled = false;
+            runtime.PatchedAddress = IntPtr.Zero;
+            runtime.OriginalBytes = null;
             Log("Disabled: " + runtime.Definition.Name);
+        }
+
+        private void MaintainDynamicCheats()
+        {
+            if (!_memory.IsAttached)
+            {
+                return;
+            }
+
+            foreach (CheatRuntime runtime in _runtimes.Values)
+            {
+                if (!runtime.IsEnabled)
+                {
+                    continue;
+                }
+
+                if (GetActionType(runtime.Definition) == "godmode")
+                {
+                    try
+                    {
+                        MaintainGodMode();
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+        }
+
+        private void MaintainGodMode()
+        {
+            InstallHealthCollectorHook();
+            if (_healthCollectorHook == null || _healthCollectorHook.DataAddress == IntPtr.Zero)
+            {
+                return;
+            }
+
+            byte[] ptrBytes = _memory.ReadBytes(_healthCollectorHook.DataAddress, 8);
+            long baseAddress = BitConverter.ToInt64(ptrBytes, 0);
+            if (baseAddress == 0)
+            {
+                return;
+            }
+
+            IntPtr maxAddress = new IntPtr(baseAddress + 0x368);
+            IntPtr healthAddress = new IntPtr(baseAddress + 0x364);
+            byte[] maxHealth = _memory.ReadBytes(maxAddress, 4);
+            _memory.WriteBytes(healthAddress, maxHealth);
+        }
+
+        private void InstallHealthCollectorHook()
+        {
+            if (_healthCollectorHook != null)
+            {
+                return;
+            }
+
+            IntPtr hookAddress = FindPatternAddress("48 8B 4B 08 45 8B CC");
+            byte[] originalBytes = _memory.ReadBytes(hookAddress, 7);
+            IntPtr dataAddress = _memory.Allocate(8);
+            IntPtr caveAddress = _memory.AllocateNear(hookAddress, 128);
+
+            List<byte> cave = new List<byte>();
+            cave.Add(0x50);
+            cave.Add(0x48);
+            cave.Add(0xB8);
+            cave.AddRange(BitConverter.GetBytes(dataAddress.ToInt64()));
+            cave.Add(0x48);
+            cave.Add(0x89);
+            cave.Add(0x18);
+            cave.Add(0x58);
+            cave.AddRange(new byte[] { 0x48, 0x8B, 0x4B, 0x08, 0x45, 0x8B, 0xCC });
+            cave.AddRange(BuildRelativeJump(IntPtr.Add(caveAddress, cave.Count), IntPtr.Add(hookAddress, 7)));
+
+            _memory.WriteBytes(caveAddress, cave.ToArray());
+            _memory.WriteBytes(hookAddress, BuildJumpPatch(hookAddress, caveAddress, 7));
+
+            _healthCollectorHook = new HookState();
+            _healthCollectorHook.HookAddress = hookAddress;
+            _healthCollectorHook.CaveAddress = caveAddress;
+            _healthCollectorHook.DataAddress = dataAddress;
+            _healthCollectorHook.OriginalBytes = originalBytes;
+            _healthCollectorHook.OverwriteSize = 7;
+        }
+
+        private HookState InstallOneHitKillHook()
+        {
+            IntPtr hookAddress = FindPatternAddress("C5 FA 10 81 64 03 00 00");
+            byte[] originalBytes = _memory.ReadBytes(hookAddress, 8);
+            IntPtr caveAddress = _memory.AllocateNear(hookAddress, 128);
+
+            List<byte> cave = new List<byte>();
+            cave.AddRange(new byte[] { 0x66, 0x81, 0x79, 0x10, 0x77, 0x77 });
+            cave.AddRange(new byte[] { 0x74, 0x16 });
+            cave.AddRange(new byte[] { 0x81, 0xB9, 0x64, 0x03, 0x00, 0x00, 0x00, 0x00, 0x20, 0x41 });
+            cave.AddRange(new byte[] { 0x76, 0x0A });
+            cave.AddRange(new byte[] { 0xC7, 0x81, 0x64, 0x03, 0x00, 0x00, 0x00, 0x00, 0x20, 0x41 });
+            cave.AddRange(new byte[] { 0xC5, 0xFA, 0x10, 0x81, 0x64, 0x03, 0x00, 0x00 });
+            cave.AddRange(BuildRelativeJump(IntPtr.Add(caveAddress, cave.Count), IntPtr.Add(hookAddress, 8)));
+
+            _memory.WriteBytes(caveAddress, cave.ToArray());
+            _memory.WriteBytes(hookAddress, BuildJumpPatch(hookAddress, caveAddress, 8));
+
+            HookState hook = new HookState();
+            hook.HookAddress = hookAddress;
+            hook.CaveAddress = caveAddress;
+            hook.OriginalBytes = originalBytes;
+            hook.OverwriteSize = 8;
+            return hook;
+        }
+
+        private void UninstallHook(ref HookState hook)
+        {
+            if (hook == null)
+            {
+                return;
+            }
+
+            if (_memory.IsAttached && hook.HookAddress != IntPtr.Zero && hook.OriginalBytes != null)
+            {
+                _memory.WriteBytes(hook.HookAddress, hook.OriginalBytes);
+            }
+
+            if (_memory.IsAttached)
+            {
+                if (hook.CaveAddress != IntPtr.Zero)
+                {
+                    _memory.Free(hook.CaveAddress);
+                }
+
+                if (hook.DataAddress != IntPtr.Zero)
+                {
+                    _memory.Free(hook.DataAddress);
+                }
+            }
+
+            hook = null;
+        }
+
+        private IntPtr FindPatternAddress(string pattern)
+        {
+            int moduleSize;
+            IntPtr moduleBase = _memory.GetModuleBase(_profile.ModuleName, out moduleSize);
+            if (moduleBase == IntPtr.Zero || moduleSize <= 0)
+            {
+                throw new InvalidOperationException("Module not found: " + _profile.ModuleName);
+            }
+
+            byte[] moduleBytes = _memory.ReadModule(moduleBase, moduleSize);
+            int found = PatternScanner.Find(moduleBytes, pattern);
+            if (found < 0)
+            {
+                throw new InvalidOperationException("Pattern not found: " + pattern);
+            }
+
+            return IntPtr.Add(moduleBase, found);
+        }
+
+        private static byte[] BuildJumpPatch(IntPtr fromAddress, IntPtr toAddress, int overwriteSize)
+        {
+            List<byte> bytes = new List<byte>();
+            bytes.AddRange(BuildRelativeJump(fromAddress, toAddress));
+            while (bytes.Count < overwriteSize)
+            {
+                bytes.Add(0x90);
+            }
+
+            return bytes.ToArray();
+        }
+
+        private static byte[] BuildRelativeJump(IntPtr fromAddress, IntPtr toAddress)
+        {
+            long diff = toAddress.ToInt64() - (fromAddress.ToInt64() + 5);
+            if (diff < int.MinValue || diff > int.MaxValue)
+            {
+                throw new InvalidOperationException("Relative jump target is out of range. Near allocation failed.");
+            }
+
+            List<byte> bytes = new List<byte>();
+            bytes.Add(0xE9);
+            bytes.AddRange(BitConverter.GetBytes((int)diff));
+            return bytes.ToArray();
         }
 
         private IntPtr ResolveAddress(CheatRuntime runtime)
@@ -352,9 +612,22 @@ namespace Crysis2RemasteredTrainer
             return string.IsNullOrWhiteSpace(definition.ActionType) ? "patch" : definition.ActionType.Trim().ToLowerInvariant();
         }
 
-        private void DisableAllCheats()
+        private bool IsAnyRuntimeEnabled(string actionType)
         {
             foreach (CheatRuntime runtime in _runtimes.Values)
+            {
+                if (runtime.IsEnabled && GetActionType(runtime.Definition) == actionType)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void DisableAllCheats()
+        {
+            foreach (CheatRuntime runtime in _runtimes.Values.ToList())
             {
                 try
                 {
@@ -365,7 +638,7 @@ namespace Crysis2RemasteredTrainer
                     Log(runtime.Definition.Name + " disable-all error: " + ex.Message);
                 }
 
-                if (runtime.Toggle.Checked)
+                if (runtime.Toggle != null && runtime.Toggle.Checked)
                 {
                     runtime.Toggle.Checked = false;
                 }
@@ -462,6 +735,16 @@ namespace Crysis2RemasteredTrainer
             internal bool IsEnabled;
             internal byte[] OriginalBytes;
             internal IntPtr PatchedAddress;
+            internal HookState Hook;
+        }
+
+        private sealed class HookState
+        {
+            internal IntPtr HookAddress;
+            internal IntPtr CaveAddress;
+            internal IntPtr DataAddress;
+            internal byte[] OriginalBytes;
+            internal int OverwriteSize;
         }
     }
 }

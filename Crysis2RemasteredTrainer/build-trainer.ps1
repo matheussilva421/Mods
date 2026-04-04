@@ -13,6 +13,8 @@ if (-not (Test-Path $compiler)) {
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 New-Item -ItemType Directory -Force -Path $profilesOut | Out-Null
 
+Get-ChildItem $profilesOut -Filter *.json -ErrorAction SilentlyContinue | Remove-Item -Force
+
 $sources = @(
     (Join-Path $root "Program.cs"),
     (Join-Path $root "NativeMethods.cs"),
@@ -39,6 +41,6 @@ if ($LASTEXITCODE -ne 0) {
     throw "Compilation failed with exit code $LASTEXITCODE"
 }
 
-Get-ChildItem (Join-Path $root "profiles") -Filter *.json | Copy-Item -Destination $profilesOut -Force
+Copy-Item (Join-Path $root "profiles\crysis2-remastered.fr-v1.4.json") $profilesOut -Force
 
 Write-Host "Built trainer to $outDir"
