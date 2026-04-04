@@ -1,11 +1,22 @@
 ﻿# Games Index
 
-Projects are grouped by game.
+Projetos agrupados por jogo.
 
-## Available games
+## Jogos disponiveis
 
 - `Crysis2Remastered/`
 
-## Current download path
+## Padrao esperado para novos jogos
+
+```text
+Games/
+  NomeDoJogo/
+    Trainer/
+    Mods/
+    Patches/
+    Research/
+```
+
+## Download atual mais importante
 
 - `Crysis2Remastered/Trainer/release/cheat-deck/Crysis2Remastered-CheatDeck.exe`

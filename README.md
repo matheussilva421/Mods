@@ -1,28 +1,53 @@
 ﻿# Mods / Trainers
 
-This repository is organized by game so future projects can live side by side without polluting the root.
+Repositorio para organizar projetos por jogo, com estrutura pronta para crescer sem baguncar a raiz.
 
-## Games
+## Estrutura do repositorio
+
+- `Games/` projetos agrupados por jogo
+- `Docs/` documentacao agrupada por jogo e por repositorio
+
+## Jogo ativo hoje
 
 - `Games/Crysis2Remastered/`
 
-## Fast download path
+## Download rapido
 
-For the current Steam Deck Cheat Deck package, use:
+Para usar o pacote atual no Steam Deck com Cheat Deck:
 
 - `Games/Crysis2Remastered/Trainer/release/cheat-deck/Crysis2Remastered-CheatDeck.exe`
 
-## Repository layout
+## Como esta organizado
 
-- `Games/` active projects grouped by game
-- `Docs/Games/` documentation grouped by game
+Cada jogo pode ter mais de um tipo de projeto no futuro, por exemplo:
 
-## Current active project
+- `Trainer/`
+- `Mods/`
+- `Patches/`
+- `Research/`
 
-- `Games/Crysis2Remastered/Trainer/`
-- `Docs/Games/Crysis2Remastered/`
+Exemplo de padrao:
 
-## Implemented cheats for Crysis 2 Remastered
+```text
+Games/
+  NomeDoJogo/
+    Trainer/
+    Mods/
+    Patches/
+Docs/
+  Games/
+    NomeDoJogo/
+  Repository/
+```
+
+## Projeto atual
+
+- jogo: `Crysis 2 Remastered`
+- tipo: `Trainer`
+- release final: `Games/Crysis2Remastered/Trainer/release/cheat-deck/`
+- documentacao: `Docs/Games/Crysis2Remastered/`
+
+## Cheats implementados no projeto atual
 
 - `F1` Lock Energy
 - `F2` Lock Holster
@@ -32,8 +57,8 @@ For the current Steam Deck Cheat Deck package, use:
 - `F6` 1-Hit Kill
 - `F12` Disable all
 
-## Scope
+## Escopo atual
 
 - single-player only
-- intended for Cheat Deck on Steam Deck
-- based on the Fearless Revolution `Crysis2 REM_v1.4_Released.CT` table
+- foco em Steam Deck + Cheat Deck
+- baseado na tabela `Crysis2 REM_v1.4_Released.CT`

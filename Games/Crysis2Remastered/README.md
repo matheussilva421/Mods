@@ -1,11 +1,15 @@
 ﻿# Crysis 2 Remastered
 
-This game folder is organized by tool type.
+Esta pasta agrupa tudo que pertence a este jogo.
 
-## Available project
+## Projeto disponivel
 
 - `Trainer/`
 
-## Fastest path
+## Caminho rapido
 
 - `Trainer/release/cheat-deck/Crysis2Remastered-CheatDeck.exe`
+
+## Documentacao
+
+- `../../Docs/Games/Crysis2Remastered/`
