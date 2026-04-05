@@ -1,0 +1,41 @@
+============================================================
+Session started at 2026-04-04 21:01:22
+Log file: Z:\home\deck\Games\Trainers\Crysis2RemasteredTrainer.log
+============================================================
+21:01:22  Session started.
+21:01:22  File log: Z:\home\deck\Games\Trainers\Crysis2RemasteredTrainer.log
+21:01:22  External profile file not found. Loaded embedded FR v1.4 profile.
+21:01:22  Loaded profile: Crysis 2 Remastered FR v1.4 direct trainer
+21:01:23  Attached to Crysis2Remastered (PID 332) at Z:\home\deck\Games\Crysis 2 Remastered\Bin64\Crysis2Remastered.exe
+21:01:23  Auto-enable on attach started.
+21:01:23  Enabling Lock Energy using action type patch.
+21:01:23  Resolving Lock Energy inside module Crysis2Remastered.exe at 0x140000000 (size 0x2E5A000).
+21:01:23  Lock Energy resolved target address 0x14131F76F.
+21:01:23  Enabled: Lock Energy at 0x14131F76F
+21:01:23  Enabling Lock Holster using action type patch.
+21:01:23  Resolving Lock Holster inside module Crysis2Remastered.exe at 0x140000000 (size 0x2E5A000).
+21:01:24  Lock Holster resolved target address 0x1404A9CE3.
+21:01:24  Enabled: Lock Holster at 0x1404A9CE3
+21:01:24  Enabling Lock Clip (No Reload) using action type patch.
+21:01:24  Resolving Lock Clip (No Reload) inside module Crysis2Remastered.exe at 0x140000000 (size 0x2E5A000).
+21:01:24  Lock Clip (No Reload) resolved target address 0x14133A3BA.
+21:01:24  Enabled: Lock Clip (No Reload) at 0x14133A3BA
+21:01:24  Enabling Invisible using action type setbytes.
+21:01:24  Resolving Invisible inside module Crysis2Remastered.exe at 0x140000000 (size 0x2E5A000).
+21:01:24  Invisible resolved target address 0x141ECB3A0.
+21:01:24  Enabled: Invisible at 0x141ECB3A0
+21:01:24  Enabling God Mode using action type godmode.
+21:01:24  Scanning module Crysis2Remastered.exe at 0x140000000 (size 0x2E5A000) for pattern 48 8B 4B 08 45 8B CC.
+21:01:25  Installing God Mode collector hook at 0x1412F055D.
+21:01:25  Enabled: God Mode
+21:01:25  Enabling 1-Hit Kill using action type onehitkill.
+21:01:25  Scanning module Crysis2Remastered.exe at 0x140000000 (size 0x2E5A000) for pattern C5 FA 10 81 64 03 00 00.
+21:01:25  Installing 1-Hit Kill hook at 0x141054C60.
+21:01:25  Enabled: 1-Hit Kill
+21:01:25  Auto-enable on attach finished.
+21:03:22  Disabled: Lock Energy
+21:03:22  Disabled: Lock Holster
+21:03:22  Disabled: Lock Clip (No Reload)
+21:03:22  Disabled: Invisible
+21:03:22  Disabled: God Mode
+21:03:22  Disabled: 1-Hit Kill
