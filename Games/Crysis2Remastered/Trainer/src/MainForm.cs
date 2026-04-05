@@ -15,7 +15,7 @@ namespace Crysis2RemasteredTrainer
     {
         private readonly ProcessMemory _memory = new ProcessMemory();
         private readonly Dictionary<string, CheatRuntime> _runtimes = new Dictionary<string, CheatRuntime>(StringComparer.OrdinalIgnoreCase);
-        private readonly Dictionary<int, CheatDefinition> _hotkeyMap = new Dictionary<int, CheatDefinition>();
+        private readonly Dictionary<int, HotkeyBinding> _hotkeyMap = new Dictionary<int, HotkeyBinding>();
         private readonly TableLayoutPanel _cheatPanel = new TableLayoutPanel();
         private readonly TextBox _logBox = new TextBox();
         private readonly Label _statusLabel = new Label();
@@ -743,26 +743,23 @@ namespace Crysis2RemasteredTrainer
             int id = 100;
             foreach (CheatDefinition cheat in _profile.Cheats)
             {
-                Keys parsedKey;
-                if (!Enum.TryParse(cheat.Hotkey, true, out parsedKey))
-                {
-                    continue;
-                }
+                id = RegisterHotkeyBinding(id, cheat, cheat.Hotkey);
 
-                if (NativeMethods.RegisterHotKey(Handle, id, 0, (uint)parsedKey))
+                Keys secondaryKey;
+                if (TryGetDigitHotkey(cheat, out secondaryKey))
                 {
-                    _hotkeyMap[id] = cheat;
-                    id++;
-                }
-                else
-                {
-                    Log("Hotkey registration failed for " + cheat.Name + " (" + cheat.Hotkey + "): " + GetLastWin32ErrorMessage() + ".");
+                    id = RegisterHotkeyBinding(id, cheat, secondaryKey.ToString());
                 }
             }
 
             if (!NativeMethods.RegisterHotKey(Handle, 999, 0, (uint)Keys.F12))
             {
                 Log("Hotkey registration failed for F12 panic key: " + GetLastWin32ErrorMessage() + ".");
+            }
+
+            if (!NativeMethods.RegisterHotKey(Handle, 998, 0, (uint)Keys.D7))
+            {
+                Log("Hotkey registration failed for 7 disable-all key: " + GetLastWin32ErrorMessage() + ".");
             }
         }
 
@@ -774,6 +771,7 @@ namespace Crysis2RemasteredTrainer
             }
 
             NativeMethods.UnregisterHotKey(Handle, 999);
+            NativeMethods.UnregisterHotKey(Handle, 998);
         }
 
         protected override void WndProc(ref Message m)
@@ -788,15 +786,22 @@ namespace Crysis2RemasteredTrainer
                     return;
                 }
 
-                CheatDefinition cheat;
-                if (_hotkeyMap.TryGetValue(id, out cheat))
+                if (id == 998)
+                {
+                    QueueTrainerWork(delegate { DisableAllCheats(); }, "Disable-all hotkey failed");
+                    Log("Hotkey pressed: 7 -> Disable All.");
+                    return;
+                }
+
+                HotkeyBinding binding;
+                if (_hotkeyMap.TryGetValue(id, out binding))
                 {
                     CheatRuntime runtime;
-                    if (_runtimes.TryGetValue(cheat.Id, out runtime))
+                    if (_runtimes.TryGetValue(binding.Cheat.Id, out runtime))
                     {
-                        Log("Hotkey pressed: " + cheat.Hotkey + " -> " + cheat.Name + ".");
+                        Log("Hotkey pressed: " + binding.DisplayKey + " -> " + binding.Cheat.Name + ".");
                         bool nextState = !runtime.IsEnabled;
-                        QueueTrainerWork(delegate { ToggleCheat(runtime, nextState); }, cheat.Name + " hotkey failed");
+                        QueueTrainerWork(delegate { ToggleCheat(runtime, nextState); }, binding.Cheat.Name + " hotkey failed");
                     }
                 }
             }
@@ -887,25 +892,25 @@ namespace Crysis2RemasteredTrainer
             title.Width = 185;
             title.Height = 24;
             title.TextAlign = ContentAlignment.MiddleLeft;
-            title.Text = runtime.Definition.Name + " (" + runtime.Definition.Hotkey + ")";
+            title.Text = runtime.Definition.Name + " (" + GetDisplayHotkeys(runtime.Definition) + ")";
             title.Font = new Font(Font.FontFamily, 8.5f, FontStyle.Bold);
 
             Button enableButton = new Button();
-            enableButton.Width = 62;
-            enableButton.Height = 24;
+            enableButton.Width = 72;
+            enableButton.Height = 26;
             enableButton.Text = "Enable";
-            enableButton.Click += delegate
+            enableButton.MouseDown += delegate
             {
-                QueueTrainerWork(delegate { RequestCheatState(runtime, true, "button"); }, runtime.Definition.Name + " enable failed");
+                QueueTrainerWork(delegate { RequestCheatState(runtime, true, "button-mousedown"); }, runtime.Definition.Name + " enable failed");
             };
 
             Button disableButton = new Button();
-            disableButton.Width = 62;
-            disableButton.Height = 24;
+            disableButton.Width = 72;
+            disableButton.Height = 26;
             disableButton.Text = "Disable";
-            disableButton.Click += delegate
+            disableButton.MouseDown += delegate
             {
-                QueueTrainerWork(delegate { RequestCheatState(runtime, false, "button"); }, runtime.Definition.Name + " disable failed");
+                QueueTrainerWork(delegate { RequestCheatState(runtime, false, "button-mousedown"); }, runtime.Definition.Name + " disable failed");
             };
 
             Label stateLabel = new Label();
@@ -939,6 +944,91 @@ namespace Crysis2RemasteredTrainer
             Log("Requested: " + runtime.Definition.Name + " -> " + (enable ? "enable" : "disable") + " via " + source + ".");
             ToggleCheat(runtime, enable);
             Log("Current state: " + runtime.Definition.Name + " -> " + (runtime.IsEnabled ? "enabled" : "disabled") + ".");
+        }
+
+        private int RegisterHotkeyBinding(int id, CheatDefinition cheat, string hotkeyText)
+        {
+            if (cheat == null || string.IsNullOrWhiteSpace(hotkeyText))
+            {
+                return id;
+            }
+
+            Keys parsedKey;
+            if (!Enum.TryParse(hotkeyText, true, out parsedKey))
+            {
+                return id;
+            }
+
+            if (NativeMethods.RegisterHotKey(Handle, id, 0, (uint)parsedKey))
+            {
+                HotkeyBinding binding = new HotkeyBinding();
+                binding.Cheat = cheat;
+                binding.DisplayKey = NormalizeHotkeyLabel(parsedKey, hotkeyText);
+                _hotkeyMap[id] = binding;
+                return id + 1;
+            }
+
+            Log("Hotkey registration failed for " + cheat.Name + " (" + NormalizeHotkeyLabel(parsedKey, hotkeyText) + "): " + GetLastWin32ErrorMessage() + ".");
+            return id;
+        }
+
+        private static bool TryGetDigitHotkey(CheatDefinition cheat, out Keys key)
+        {
+            key = Keys.None;
+            if (cheat == null)
+            {
+                return false;
+            }
+
+            switch (cheat.Id)
+            {
+                case "lock-energy":
+                    key = Keys.D1;
+                    return true;
+                case "lock-holster":
+                    key = Keys.D2;
+                    return true;
+                case "lock-clip":
+                    key = Keys.D3;
+                    return true;
+                case "invisible":
+                    key = Keys.D4;
+                    return true;
+                case "god-mode":
+                    key = Keys.D5;
+                    return true;
+                case "one-hit-kill":
+                    key = Keys.D6;
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private static string GetDisplayHotkeys(CheatDefinition cheat)
+        {
+            if (cheat == null)
+            {
+                return string.Empty;
+            }
+
+            Keys key;
+            if (TryGetDigitHotkey(cheat, out key))
+            {
+                return cheat.Hotkey + " / " + NormalizeHotkeyLabel(key, key.ToString());
+            }
+
+            return cheat.Hotkey;
+        }
+
+        private static string NormalizeHotkeyLabel(Keys key, string fallback)
+        {
+            if (key >= Keys.D0 && key <= Keys.D9)
+            {
+                return ((int)(key - Keys.D0)).ToString();
+            }
+
+            return fallback;
         }
 
         private void UpdateRuntimeUi(CheatRuntime runtime)
@@ -1095,6 +1185,12 @@ namespace Crysis2RemasteredTrainer
             internal Button EnableButton;
             internal Button DisableButton;
             internal Label StateLabel;
+        }
+
+        private sealed class HotkeyBinding
+        {
+            internal CheatDefinition Cheat;
+            internal string DisplayKey;
         }
 
         private sealed class HookState
