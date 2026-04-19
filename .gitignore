@@ -1,3 +1,5 @@
 ﻿Games/Crysis2Remastered/Trainer/Crysis2RemasteredTrainer-win-x64.zip
 Games/Crysis2Remastered/Trainer/dist/
+Games/*/Trainer/dist/
+Games/*/Trainer/release/*/*.log
 .DS_Store

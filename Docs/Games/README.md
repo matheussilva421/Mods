@@ -6,3 +6,4 @@ A documentacao tecnica esta agrupada por jogo.
 
 - `CrysisRemastered/`
 - `Crysis2Remastered/`
+- `Crysis3Remastered/`
