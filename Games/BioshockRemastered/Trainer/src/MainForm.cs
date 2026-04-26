@@ -34,6 +34,7 @@ namespace BioshockRemasteredTrainer
         private bool _isClosing;
         private bool _setupInstalled;
         private bool _blockCheatsForCompatibility;
+        private bool _isEpicBuild;
         private string _targetCompatibilityLabel = "not checked";
         private System.Threading.Timer _pollTimer;
 
@@ -276,6 +277,7 @@ namespace BioshockRemasteredTrainer
             _transientHooks.Clear();
             _dataAddresses.Clear();
             _blockCheatsForCompatibility = false;
+            _isEpicBuild = false;
             _targetCompatibilityLabel = "not checked";
         }
 
@@ -312,7 +314,7 @@ namespace BioshockRemasteredTrainer
         private void EnableCheat(CheatRuntime runtime)
         {
             EnsureAttached();
-            EnsureTargetCanUseCheats();
+            EnsureTargetCanUseCheats(runtime.Definition);
             string id = runtime.Definition.Id;
             Log("Enabling " + runtime.Definition.Name + ".");
 
@@ -502,6 +504,16 @@ namespace BioshockRemasteredTrainer
             code.Add(0xC7, 0x40, 0x40);
             code.AddInt32(6);
             code.Add(0x3B, 0x70, 0x40);
+            if (_isEpicBuild)
+            {
+                code = new X86CodeBuilder();
+                code.Add(0x8B, 0x07);
+                code.Add(0xC7, 0x40, 0x40);
+                code.AddInt32(6);
+                code.Add(0x3B, 0x70, 0x40);
+                return InstallHook("GeneSlotEpic", "8B 07 3B 70 40 0F 8D", 0, 5, code.ToArray());
+            }
+
             return InstallHook("GeneSlot", "8B 01 3B 70 40", 0, 5, code.ToArray());
         }
 
@@ -520,8 +532,17 @@ namespace BioshockRemasteredTrainer
             WriteDataByte("bInvisible", 1);
 
             X86CodeBuilder controller = new X86CodeBuilder();
-            controller.Add(0x8B, 0x7F, 0x1C);
-            controller.Add(0x89, 0x4C, 0x24, 0x30);
+            if (_isEpicBuild)
+            {
+                controller.Add(0x8B, 0x45, 0x1C);
+                controller.Add(0x89, 0x4C, 0x24, 0x10);
+            }
+            else
+            {
+                controller.Add(0x8B, 0x7F, 0x1C);
+                controller.Add(0x89, 0x4C, 0x24, 0x30);
+            }
+
             controller.Add(0x53);
             controller.Add(0x85, 0xFF);
             controller.JccNear(0x84, "done");
@@ -547,7 +568,14 @@ namespace BioshockRemasteredTrainer
             controller.Add(0xFD);
             controller.Label("done");
             controller.Add(0x5B);
-            _setupHooks.Add(InstallHook("ColStruct", "8B 7F 1C 89 4C 24 30", 0, 7, controller.ToArray()));
+            if (_isEpicBuild)
+            {
+                _setupHooks.Add(InstallHook("ColStructEpic", "8B 45 1C 89 4C 24 10 89 41 4C 8B 45 20 89 41 50 8B 87 50 04 00 00", 0, 7, controller.ToArray()));
+            }
+            else
+            {
+                _setupHooks.Add(InstallHook("ColStruct", "8B 7F 1C 89 4C 24 30", 0, 7, controller.ToArray()));
+            }
 
             List<byte> invisible = new List<byte>();
             invisible.Add(0x50);
@@ -742,13 +770,20 @@ namespace BioshockRemasteredTrainer
             }
         }
 
-        private void EnsureTargetCanUseCheats()
+        private void EnsureTargetCanUseCheats(CheatDefinition definition)
         {
             if (_blockCheatsForCompatibility)
             {
                 throw new InvalidOperationException(
                     "This game build is not supported by this trainer. " +
                     _targetCompatibilityLabel + ". Use the Steam/GOG v1.0.122872 executable, or port the AOB hooks for the Epic build.");
+            }
+
+            if (_isEpicBuild && definition != null && string.Equals(definition.Id, "lock-consumables", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException(
+                    "Lock Consumables is not enabled for the Epic ChangeNumber=127355 build yet. " +
+                    "The Epic executable recompiles several consumable paths, including clip/inventory consumption, so this toggle needs a dedicated port.");
             }
         }
 
@@ -762,21 +797,24 @@ namespace BioshockRemasteredTrainer
 
             if (isKnownEpic)
             {
-                _blockCheatsForCompatibility = true;
-                _targetCompatibilityLabel = "unsupported Epic build" + FormatVersionLabel(version, processPath);
+                _isEpicBuild = true;
+                _blockCheatsForCompatibility = false;
+                _targetCompatibilityLabel = "supported Epic build with Lock Consumables disabled" + FormatVersionLabel(version, processPath);
                 Log("Compatibility check: " + _targetCompatibilityLabel + ".");
-                Log("Epic appears to use a different executable/build from the Steam/GOG CT target, so cheats are blocked to avoid patching the wrong code.");
+                Log("Epic ChangeNumber=127355 uses a different executable. Core hooks were ported from the supplied BioshockHD.exe; Lock Consumables remains blocked until its rewritten consumable paths are ported.");
                 return;
             }
 
             if (isSupportedSteamGog)
             {
+                _isEpicBuild = false;
                 _blockCheatsForCompatibility = false;
                 _targetCompatibilityLabel = "supported Steam/GOG build" + FormatVersionLabel(version, processPath);
                 Log("Compatibility check: " + _targetCompatibilityLabel + ".");
                 return;
             }
 
+            _isEpicBuild = false;
             _blockCheatsForCompatibility = false;
             _targetCompatibilityLabel = "unknown build" + FormatVersionLabel(version, processPath);
             Log("Compatibility check: " + _targetCompatibilityLabel + ".");

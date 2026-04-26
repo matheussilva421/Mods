@@ -5,7 +5,7 @@ namespace BioshockRemasteredTrainer
         internal static string GetDefaultProfileJson()
         {
             return @"{
-  ""ProfileName"": ""BioShock Remastered Steam/GOG v1.0.122872 trainer"",
+  ""ProfileName"": ""BioShock Remastered Steam/GOG v1.0.122872 + Epic 127355 partial trainer"",
   ""ProcessName"": ""BioshockHD.exe"",
   ""ModuleName"": ""BioshockHD.exe"",
   ""PollIntervalMs"": 500,

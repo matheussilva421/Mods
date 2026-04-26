@@ -99,8 +99,8 @@ Observacao:
 
 - esse `.exe` ja tem o perfil embutido;
 - para o caso simples, nao precisa copiar pasta `profiles`;
-- Steam/GOG `v1.0.122872` sao o alvo validado por perfil;
-- a build Epic conhecida usa executavel diferente (`FinalEpic` / `ChangeNumber=127355`) e sera bloqueada ate existir perfil proprio;
+- Steam/GOG `v1.0.122872` sao o alvo completo validado por perfil;
+- Epic `ChangeNumber=127355` tem suporte parcial: `Lock Consumables` fica bloqueado ate existir port dedicado;
 - ao voltar para o menu principal, use `F12` para restaurar os hooks antes de carregar outro save.
 '@
 Set-Content -Path $cheatDeckReadmePath -Value $cheatDeckReadme -Encoding UTF8
