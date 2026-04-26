@@ -10,7 +10,7 @@ release_dir="$root/release"
 cheat_deck_dir="$release_dir/cheat-deck"
 portable_dir="$release_dir/portable"
 portable_profiles_dir="$portable_dir/profiles"
-profile_name="bioshock-remastered.steam-v1.0.122872.json"
+profile_name="bioshock-remastered.steam-gog-v1.0.122872.json"
 cheat_deck_exe_path="$cheat_deck_dir/BioshockRemastered-CheatDeck.exe"
 cheat_deck_readme_path="$cheat_deck_dir/LEIA-ME-PTBR.md"
 
@@ -117,6 +117,8 @@ Observacao:
 
 - esse `.exe` ja tem o perfil embutido;
 - para o caso simples, nao precisa copiar pasta `profiles`;
+- Steam/GOG `v1.0.122872` sao o alvo validado por perfil;
+- a build Epic conhecida usa executavel diferente (`FinalEpic` / `ChangeNumber=127355`) e sera bloqueada ate existir perfil proprio;
 - ao voltar para o menu principal, use `F12` para restaurar os hooks antes de carregar outro save.
 EOF
 

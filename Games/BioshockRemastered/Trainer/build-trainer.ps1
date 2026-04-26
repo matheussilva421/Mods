@@ -9,7 +9,7 @@ $releaseDir = Join-Path $root "release"
 $cheatDeckDir = Join-Path $releaseDir "cheat-deck"
 $portableDir = Join-Path $releaseDir "portable"
 $portableProfilesDir = Join-Path $portableDir "profiles"
-$profileName = "bioshock-remastered.steam-v1.0.122872.json"
+$profileName = "bioshock-remastered.steam-gog-v1.0.122872.json"
 $cheatDeckExeName = "BioshockRemastered-CheatDeck.exe"
 $cheatDeckExePath = Join-Path $cheatDeckDir $cheatDeckExeName
 $cheatDeckReadmePath = Join-Path $cheatDeckDir "LEIA-ME-PTBR.md"
@@ -99,6 +99,8 @@ Observacao:
 
 - esse `.exe` ja tem o perfil embutido;
 - para o caso simples, nao precisa copiar pasta `profiles`;
+- Steam/GOG `v1.0.122872` sao o alvo validado por perfil;
+- a build Epic conhecida usa executavel diferente (`FinalEpic` / `ChangeNumber=127355`) e sera bloqueada ate existir perfil proprio;
 - ao voltar para o menu principal, use `F12` para restaurar os hooks antes de carregar outro save.
 '@
 Set-Content -Path $cheatDeckReadmePath -Value $cheatDeckReadme -Encoding UTF8

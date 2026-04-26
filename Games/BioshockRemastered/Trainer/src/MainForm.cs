@@ -33,6 +33,8 @@ namespace BioshockRemasteredTrainer
         private int _pollInProgress;
         private bool _isClosing;
         private bool _setupInstalled;
+        private bool _blockCheatsForCompatibility;
+        private string _targetCompatibilityLabel = "not checked";
         private System.Threading.Timer _pollTimer;
 
         internal MainForm()
@@ -121,7 +123,7 @@ namespace BioshockRemasteredTrainer
             InitializeFileLog();
             Log("Session started.");
             Log("File log: " + _logFilePath);
-            _profilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "profiles", "bioshock-remastered.steam-v1.0.122872.json");
+            _profilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "profiles", "bioshock-remastered.steam-gog-v1.0.122872.json");
             if (File.Exists(_profilePath))
             {
                 _profile = TrainerProfile.Load(_profilePath);
@@ -237,7 +239,12 @@ namespace BioshockRemasteredTrainer
 
                 if (attached)
                 {
-                    SetStatus("Status: attached to " + _memory.Process.ProcessName + " (PID " + _memory.Process.Id + ")");
+                    if (processChanged && newProcessId != 0)
+                    {
+                        DetectTargetCompatibility();
+                    }
+
+                    SetStatus("Status: attached to " + _memory.Process.ProcessName + " (PID " + _memory.Process.Id + ") - " + _targetCompatibilityLabel);
                     if (processChanged && newProcessId != 0)
                     {
                         Log("Attached to " + _memory.Process.ProcessName + " (PID " + _memory.Process.Id + ")" + FormatProcessPath());
@@ -268,6 +275,8 @@ namespace BioshockRemasteredTrainer
             _setupHooks.Clear();
             _transientHooks.Clear();
             _dataAddresses.Clear();
+            _blockCheatsForCompatibility = false;
+            _targetCompatibilityLabel = "not checked";
         }
 
         private void ToggleCheat(CheatRuntime runtime, bool enable)
@@ -303,6 +312,7 @@ namespace BioshockRemasteredTrainer
         private void EnableCheat(CheatRuntime runtime)
         {
             EnsureAttached();
+            EnsureTargetCanUseCheats();
             string id = runtime.Definition.Id;
             Log("Enabling " + runtime.Definition.Name + ".");
 
@@ -589,7 +599,7 @@ namespace BioshockRemasteredTrainer
             int found = PatternScanner.Find(moduleBytes, pattern);
             if (found < 0)
             {
-                throw new InvalidOperationException("Pattern not found: " + pattern);
+                throw new InvalidOperationException("Pattern not found: " + pattern + ". Target compatibility: " + _targetCompatibilityLabel);
             }
 
             return IntPtr.Add(moduleBase, found);
@@ -730,6 +740,147 @@ namespace BioshockRemasteredTrainer
             {
                 throw new InvalidOperationException("Game process is not attached.");
             }
+        }
+
+        private void EnsureTargetCanUseCheats()
+        {
+            if (_blockCheatsForCompatibility)
+            {
+                throw new InvalidOperationException(
+                    "This game build is not supported by this trainer. " +
+                    _targetCompatibilityLabel + ". Use the Steam/GOG v1.0.122872 executable, or port the AOB hooks for the Epic build.");
+            }
+        }
+
+        private void DetectTargetCompatibility()
+        {
+            string processPath = _memory.GetProcessPath();
+            GameVersionInfo version = ReadGameVersionInfo(processPath);
+            bool looksEpic = ContainsIgnoreCase(processPath, "FinalEpic") || ContainsIgnoreCase(processPath, "Epic Games");
+            bool isKnownEpic = looksEpic || string.Equals(version.ChangeNumber, "127355", StringComparison.OrdinalIgnoreCase);
+            bool isSupportedSteamGog = string.Equals(version.ChangeNumber, "122872", StringComparison.OrdinalIgnoreCase);
+
+            if (isKnownEpic)
+            {
+                _blockCheatsForCompatibility = true;
+                _targetCompatibilityLabel = "unsupported Epic build" + FormatVersionLabel(version, processPath);
+                Log("Compatibility check: " + _targetCompatibilityLabel + ".");
+                Log("Epic appears to use a different executable/build from the Steam/GOG CT target, so cheats are blocked to avoid patching the wrong code.");
+                return;
+            }
+
+            if (isSupportedSteamGog)
+            {
+                _blockCheatsForCompatibility = false;
+                _targetCompatibilityLabel = "supported Steam/GOG build" + FormatVersionLabel(version, processPath);
+                Log("Compatibility check: " + _targetCompatibilityLabel + ".");
+                return;
+            }
+
+            _blockCheatsForCompatibility = false;
+            _targetCompatibilityLabel = "unknown build" + FormatVersionLabel(version, processPath);
+            Log("Compatibility check: " + _targetCompatibilityLabel + ".");
+            Log("This build was not identified as Epic, so the trainer will try the Steam/GOG AOBs. If a cheat fails, send BioshockHD.exe and Version.ini for a dedicated profile.");
+        }
+
+        private static string FormatVersionLabel(GameVersionInfo version, string processPath)
+        {
+            StringBuilder label = new StringBuilder();
+            if (!string.IsNullOrWhiteSpace(version.ChangeNumber))
+            {
+                label.Append(" ChangeNumber=");
+                label.Append(version.ChangeNumber);
+            }
+
+            if (!string.IsNullOrWhiteSpace(version.Configuration))
+            {
+                label.Append(" Configuration=");
+                label.Append(version.Configuration);
+            }
+
+            if (!string.IsNullOrWhiteSpace(version.VersionFilePath))
+            {
+                label.Append(" Version.ini=");
+                label.Append(version.VersionFilePath);
+            }
+            else if (!string.IsNullOrWhiteSpace(processPath))
+            {
+                label.Append(" exe=");
+                label.Append(processPath);
+            }
+
+            return label.ToString();
+        }
+
+        private static GameVersionInfo ReadGameVersionInfo(string processPath)
+        {
+            GameVersionInfo info = new GameVersionInfo();
+            if (string.IsNullOrWhiteSpace(processPath))
+            {
+                return info;
+            }
+
+            foreach (string candidate in GetVersionIniCandidates(processPath))
+            {
+                if (!File.Exists(candidate))
+                {
+                    continue;
+                }
+
+                info.VersionFilePath = candidate;
+                try
+                {
+                    foreach (string line in File.ReadAllLines(candidate))
+                    {
+                        int split = line.IndexOf('=');
+                        if (split <= 0)
+                        {
+                            continue;
+                        }
+
+                        string key = line.Substring(0, split).Trim();
+                        string value = line.Substring(split + 1).Trim().Trim('"');
+                        if (string.Equals(key, "ChangeNumber", StringComparison.OrdinalIgnoreCase))
+                        {
+                            info.ChangeNumber = value;
+                        }
+                        else if (string.Equals(key, "Configuration", StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(key, "Config", StringComparison.OrdinalIgnoreCase))
+                        {
+                            info.Configuration = value;
+                        }
+                        else if (string.Equals(key, "Branch", StringComparison.OrdinalIgnoreCase))
+                        {
+                            info.Branch = value;
+                        }
+                    }
+                }
+                catch
+                {
+                }
+
+                return info;
+            }
+
+            return info;
+        }
+
+        private static IEnumerable<string> GetVersionIniCandidates(string processPath)
+        {
+            string directory = Path.GetDirectoryName(processPath);
+            for (int i = 0; i < 4 && !string.IsNullOrWhiteSpace(directory); i++)
+            {
+                yield return Path.Combine(directory, "Version.ini");
+                yield return Path.Combine(directory, "Build", "Final", "Version.ini");
+                yield return Path.Combine(directory, "Build", "FinalEpic", "Version.ini");
+                directory = Directory.GetParent(directory) == null ? null : Directory.GetParent(directory).FullName;
+            }
+        }
+
+        private static bool ContainsIgnoreCase(string value, string fragment)
+        {
+            return !string.IsNullOrWhiteSpace(value) &&
+                value.IndexOf(fragment, StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private void RegisterHotkeys()
@@ -1167,6 +1318,14 @@ namespace BioshockRemasteredTrainer
             internal IntPtr CaveAddress;
             internal byte[] OriginalBytes;
             internal int OverwriteSize;
+        }
+
+        private sealed class GameVersionInfo
+        {
+            internal string VersionFilePath;
+            internal string ChangeNumber;
+            internal string Configuration;
+            internal string Branch;
         }
 
         private sealed class X86CodeBuilder

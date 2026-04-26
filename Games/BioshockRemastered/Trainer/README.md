@@ -20,7 +20,8 @@ Se voce quer apenas o pacote final para Cheat Deck, use:
 
 - Jogo: BioShock Remastered
 - Processo: `BioshockHD.exe`
-- Build base da tabela: Steam `v1.0.122872`
+- Build base da tabela: Steam/GOG `v1.0.122872`
+- Build Epic conhecida: `FinalEpic` / `ChangeNumber=127355` (nao compativel com este perfil)
 - Fonte tecnica: `Bioshock_REM_v1.2_Released.CT` + `Bioshock_REM_Readme.txt`
 
 ## Cheats implementados
@@ -64,8 +65,8 @@ O build gera:
 - `release/cheat-deck/BioshockRemastered-CheatDeck.exe`
 - `release/cheat-deck/LEIA-ME-PTBR.md`
 - `release/portable/BioshockRemasteredTrainer.exe`
-- `release/portable/profiles/bioshock-remastered.steam-v1.0.122872.json`
+- `release/portable/profiles/bioshock-remastered.steam-gog-v1.0.122872.json`
 
 ## Limitacao importante
 
-O executavel compila e empacota os hooks portados da tabela CE, mas o comportamento real ainda precisa ser validado dentro do jogo alvo. Como a propria tabela avisa, fast travel, cutscenes, retorno ao menu e troca entre DLC/main game podem recriar ponteiros; use `F12` antes dessas transicoes.
+O executavel compila e empacota os hooks portados da tabela CE para Steam/GOG `v1.0.122872`. A build Epic conhecida usa outro executavel/build e o trainer bloqueia a ativacao para evitar patch incorreto. Como a propria tabela avisa, fast travel, cutscenes, retorno ao menu e troca entre DLC/main game podem recriar ponteiros; use `F12` antes dessas transicoes.
