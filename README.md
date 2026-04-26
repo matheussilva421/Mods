@@ -13,6 +13,7 @@ Repositorio para organizar trainers, mods e projetos tecnicos por jogo, com uma 
 - `Games/Crysis2Remastered/`
 - `Games/Crysis3Remastered/`
 - `Games/BioshockRemastered/`
+- `Games/TheEvilWithin/`
 
 ## Downloads rapidos
 
@@ -20,6 +21,7 @@ Repositorio para organizar trainers, mods e projetos tecnicos por jogo, com uma 
 - Crysis 2 Remastered: `Games/Crysis2Remastered/Trainer/release/cheat-deck/Crysis2Remastered-CheatDeck.exe`
 - Crysis 3 Remastered: `Games/Crysis3Remastered/Trainer/release/cheat-deck/Crysis3Remastered-CheatDeck.exe`
 - BioShock Remastered: `Games/BioshockRemastered/Trainer/release/cheat-deck/BioshockRemastered-CheatDeck.exe`
+- The Evil Within: `Games/TheEvilWithin/Trainer/release/cheat-deck/TheEvilWithin-CheatDeck.exe`
 
 ## Como o repositorio esta organizado
 
@@ -51,6 +53,7 @@ Docs/
 - `Games/Crysis2Remastered/Trainer/` trainer em `.exe` para Cheat Deck
 - `Games/Crysis3Remastered/Trainer/` trainer em `.exe` para Cheat Deck
 - `Games/BioshockRemastered/Trainer/` trainer em `.exe` para Cheat Deck
+- `Games/TheEvilWithin/Trainer/` trainer em `.exe` para Cheat Deck
 
 ## Escopo atual
 

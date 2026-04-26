@@ -8,6 +8,7 @@ Esta pasta agrupa os projetos por jogo.
 - `Crysis2Remastered/`
 - `Crysis3Remastered/`
 - `BioshockRemastered/`
+- `TheEvilWithin/`
 
 ## Estado atual de cada jogo
 
@@ -15,6 +16,7 @@ Esta pasta agrupa os projetos por jogo.
 - `Crysis2Remastered/` trainer em `.exe` com release para Cheat Deck
 - `Crysis3Remastered/` trainer em `.exe` com release para Cheat Deck
 - `BioshockRemastered/` trainer em `.exe` com release para Cheat Deck
+- `TheEvilWithin/` trainer em `.exe` com release para Cheat Deck
 
 ## Padrao esperado para novos jogos
 

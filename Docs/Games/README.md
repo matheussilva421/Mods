@@ -8,3 +8,4 @@ A documentacao tecnica esta agrupada por jogo.
 - `Crysis2Remastered/`
 - `Crysis3Remastered/`
 - `BioshockRemastered/`
+- `TheEvilWithin/`
