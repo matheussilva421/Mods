@@ -21,7 +21,7 @@ Se voce quer apenas o pacote final para Cheat Deck, use:
 - Jogo: BioShock Remastered
 - Processo: `BioshockHD.exe`
 - Build base da tabela: Steam/GOG `v1.0.122872`
-- Build Epic conhecida: `FinalEpic` / `ChangeNumber=127355` (nao compativel com este perfil)
+- Build Epic confirmada por `Version.ini`: `Configuration=bioshockpcpatchfinal` / `ChangeNumber=127355` (nao compativel com este perfil)
 - Fonte tecnica: `Bioshock_REM_v1.2_Released.CT` + `Bioshock_REM_Readme.txt`
 
 ## Cheats implementados
@@ -69,4 +69,6 @@ O build gera:
 
 ## Limitacao importante
 
-O executavel compila e empacota os hooks portados da tabela CE para Steam/GOG `v1.0.122872`. A build Epic conhecida usa outro executavel/build e o trainer bloqueia a ativacao para evitar patch incorreto. Como a propria tabela avisa, fast travel, cutscenes, retorno ao menu e troca entre DLC/main game podem recriar ponteiros; use `F12` antes dessas transicoes.
+O executavel compila e empacota os hooks portados da tabela CE para Steam/GOG `v1.0.122872`. A build Epic confirmada pelo `Version.ini` enviado usa `ChangeNumber=127355`, entao o trainer bloqueia a ativacao para evitar patch incorreto. Como a propria tabela avisa, fast travel, cutscenes, retorno ao menu e troca entre DLC/main game podem recriar ponteiros; use `F12` antes dessas transicoes.
+
+Para criar um perfil Epic funcional, e necessario portar os AOBs usando o `BioshockHD.exe` da Epic. O `Version.ini` identifica a build, mas nao contem as instrucoes de memoria que o trainer precisa patchar.
