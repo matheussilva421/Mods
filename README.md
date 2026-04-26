@@ -12,12 +12,14 @@ Repositorio para organizar trainers, mods e projetos tecnicos por jogo, com uma 
 - `Games/CrysisRemastered/`
 - `Games/Crysis2Remastered/`
 - `Games/Crysis3Remastered/`
+- `Games/BioshockRemastered/`
 
 ## Downloads rapidos
 
 - Crysis Remastered: `Games/CrysisRemastered/Trainer/crysis_remastered_basic.ct`
 - Crysis 2 Remastered: `Games/Crysis2Remastered/Trainer/release/cheat-deck/Crysis2Remastered-CheatDeck.exe`
 - Crysis 3 Remastered: `Games/Crysis3Remastered/Trainer/release/cheat-deck/Crysis3Remastered-CheatDeck.exe`
+- BioShock Remastered: `Games/BioshockRemastered/Trainer/release/cheat-deck/BioshockRemastered-CheatDeck.exe`
 
 ## Como o repositorio esta organizado
 
@@ -48,6 +50,7 @@ Docs/
 - `Games/CrysisRemastered/Trainer/` trainer legado baseado em Cheat Engine
 - `Games/Crysis2Remastered/Trainer/` trainer em `.exe` para Cheat Deck
 - `Games/Crysis3Remastered/Trainer/` trainer em `.exe` para Cheat Deck
+- `Games/BioshockRemastered/Trainer/` trainer em `.exe` para Cheat Deck
 
 ## Escopo atual
 
