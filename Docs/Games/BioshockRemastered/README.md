@@ -5,3 +5,4 @@ Documentacao tecnica do trainer de BioShock Remastered.
 ## Entradas
 
 - `01-trainer-cheat-deck-2026-04-25.md`
+- `02-analise-fling-trainer-2026-04-26.md`
